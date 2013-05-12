@@ -70,15 +70,15 @@ cv_tabs_sizealloc (GtkWidget *widget, GtkAllocation *allocation, chanview *cv)
 
 	if (cv->vertical)
 	{
-		adj = gtk_viewport_get_vadjustment (GTK_VIEWPORT (inner->parent));
-		gdk_window_get_geometry (inner->parent->window, 0, 0, 0, &viewport_size, 0);
+		adj = gtk_viewport_get_vadjustment (GTK_VIEWPORT (gtk_widget_get_parent (inner)));
+		gdk_window_get_geometry (gtk_widget_get_parent_window (inner), 0, 0, 0, &viewport_size, 0);
 	} else
 	{
-		adj = gtk_viewport_get_hadjustment (GTK_VIEWPORT (inner->parent));
-		gdk_window_get_geometry (inner->parent->window, 0, 0, &viewport_size, 0, 0);
+		adj = gtk_viewport_get_hadjustment (GTK_VIEWPORT (gtk_widget_get_parent (inner)));
+		gdk_window_get_geometry (gtk_widget_get_parent_window (inner), 0, 0, &viewport_size, 0, 0);
 	}
 
-	if (adj->upper <= viewport_size)
+	if (gtk_adjustment_get_upper (adj) <= viewport_size)
 	{
 		gtk_widget_hide (((tabview *)cv)->b1);
 		gtk_widget_hide (((tabview *)cv)->b2);
@@ -98,8 +98,9 @@ tab_search_offset (GtkWidget *inner, gint start_offset,
 	GtkWidget *box;
 	GtkWidget *button;
 	gint found;
+	GtkAllocation allocation;
 
-	boxes = GTK_BOX (inner)->children;
+	boxes = gtk_container_get_children (GTK_CONTAINER (inner));
 	if (!forward && boxes)
 		boxes = g_list_last (boxes);
 
@@ -108,7 +109,7 @@ tab_search_offset (GtkWidget *inner, gint start_offset,
 		box = ((GtkBoxChild *)boxes->data)->widget;
 		boxes = (forward ? boxes->next : boxes->prev);
 
-		tabs = GTK_BOX (box)->children;
+		tabs = gtk_container_get_children (GTK_CONTAINER (box));
 		if (!forward && tabs)
 			tabs = g_list_last (tabs);
 
@@ -120,7 +121,8 @@ tab_search_offset (GtkWidget *inner, gint start_offset,
 			if (!GTK_IS_TOGGLE_BUTTON (button))
 				continue;
 
-			found = (vertical ? button->allocation.y : button->allocation.x);
+			gtk_widget_get_allocation (button, &allocation);
+			found = (vertical ? allocation.y : allocation.x);
 			if ((forward && found > start_offset) ||
 				(!forward && found < start_offset))
 				return found;
@@ -143,24 +145,24 @@ tab_scroll_left_up_clicked (GtkWidget *widget, chanview *cv)
 
 	if (cv->vertical)
 	{
-		adj = gtk_viewport_get_vadjustment (GTK_VIEWPORT (inner->parent));
-		gdk_window_get_geometry (inner->parent->window, 0, 0, 0, &viewport_size, 0);
+		adj = gtk_viewport_get_vadjustment (GTK_VIEWPORT (gtk_widget_get_parent (inner)));
+		gdk_window_get_geometry (gtk_widget_get_parent_window (inner), 0, 0, 0, &viewport_size, 0);
 	} else
 	{
-		adj = gtk_viewport_get_hadjustment (GTK_VIEWPORT (inner->parent));
-		gdk_window_get_geometry (inner->parent->window, 0, 0, &viewport_size, 0, 0);
+		adj = gtk_viewport_get_hadjustment (GTK_VIEWPORT (gtk_widget_get_parent (inner)));
+		gdk_window_get_geometry (gtk_widget_get_parent_window (inner), 0, 0, &viewport_size, 0, 0);
 	}
 
-	new_value = tab_search_offset (inner, adj->value, 0, cv->vertical);
+	new_value = tab_search_offset (inner, gtk_adjustment_get_value (adj), 0, cv->vertical);
 
-	if (new_value + viewport_size > adj->upper)
-		new_value = adj->upper - viewport_size;
+	if (new_value + viewport_size > gtk_adjustment_get_upper (adj))
+		new_value = gtk_adjustment_get_upper (adj) - viewport_size;
 
 	if (!tab_left_is_moving)
 	{
 		tab_left_is_moving = 1;
 
-		for (i = adj->value; ((i > new_value) && (tab_left_is_moving)); i -= 0.1)
+		for (i = gtk_adjustment_get_value (adj); ((i > new_value) && (tab_left_is_moving)); i -= 0.1)
 		{
 			gtk_adjustment_set_value (adj, i);
 			while (g_main_context_pending (NULL))
@@ -190,24 +192,24 @@ tab_scroll_right_down_clicked (GtkWidget *widget, chanview *cv)
 
 	if (cv->vertical)
 	{
-		adj = gtk_viewport_get_vadjustment (GTK_VIEWPORT (inner->parent));
-		gdk_window_get_geometry (inner->parent->window, 0, 0, 0, &viewport_size, 0);
+		adj = gtk_viewport_get_vadjustment (GTK_VIEWPORT (gtk_widget_get_parent (inner)));
+		gdk_window_get_geometry (gtk_widget_get_parent_window (inner), 0, 0, 0, &viewport_size, 0);
 	} else
 	{
-		adj = gtk_viewport_get_hadjustment (GTK_VIEWPORT (inner->parent));
-		gdk_window_get_geometry (inner->parent->window, 0, 0, &viewport_size, 0, 0);
+		adj = gtk_viewport_get_hadjustment (GTK_VIEWPORT (gtk_widget_get_parent (inner)));
+		gdk_window_get_geometry (gtk_widget_get_parent_window (inner), 0, 0, &viewport_size, 0, 0);
 	}
 
-	new_value = tab_search_offset (inner, adj->value, 1, cv->vertical);
+	new_value = tab_search_offset (inner, gtk_adjustment_get_value (adj), 1, cv->vertical);
 
-	if (new_value == 0 || new_value + viewport_size > adj->upper)
-		new_value = adj->upper - viewport_size;
+	if (new_value == 0 || new_value + viewport_size > gtk_adjustment_get_upper (adj))
+		new_value = gtk_adjustment_get_upper (adj) - viewport_size;
 
 	if (!tab_right_is_moving)
 	{
 		tab_right_is_moving = 1;
 
-		for (i = adj->value; ((i < new_value) && (tab_right_is_moving)); i += 0.1)
+		for (i = gtk_adjustment_get_value (adj); ((i < new_value) && (tab_right_is_moving)); i += 0.1)
 		{
 			gtk_adjustment_set_value (adj, i);
 			while (g_main_context_pending (NULL))
@@ -329,7 +331,7 @@ cv_tabs_init (chanview *cv)
 	button = gtkutil_button (outer, GTK_STOCK_CLOSE, NULL, cv_tabs_xclick_cb,
 									 cv, 0);
 	gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
-	GTK_WIDGET_UNSET_FLAGS (button, GTK_CAN_FOCUS);
+	gtk_widget_set_can_focus (button, FALSE);
 
 	gtk_container_add (GTK_CONTAINER (cv->box), outer);
 }
@@ -360,7 +362,7 @@ tab_add_sorted (chanview *cv, GtkWidget *box, GtkWidget *tab, chan *ch)
 	/* userdata, passed to mg_tabs_compare() */
 	b = ch->userdata;
 
-	list = GTK_BOX (box)->children;
+	list = gtk_container_get_children (GTK_BOX (box));
 	while (list)
 	{
 		child = list->data;
@@ -397,7 +399,7 @@ cv_tabs_prune (chanview *cv)
 	int empty;
 
 	inner = ((tabview *)cv)->inner;
-	boxes = GTK_BOX (inner)->children;
+	boxes = gtk_container_get_children (GTK_BOX (inner));
 	while (boxes)
 	{
 		child = boxes->data;
@@ -406,7 +408,7 @@ cv_tabs_prune (chanview *cv)
 
 		/* check if the box is empty (except a vseperator) */
 		empty = TRUE;
-		children = GTK_BOX (box)->children;
+		children = gtk_container_get_children (GTK_BOX (box));
 		while (children)
 		{
 			if (!GTK_IS_SEPARATOR (((GtkBoxChild *)children->data)->widget))
@@ -432,7 +434,7 @@ tab_add_real (chanview *cv, GtkWidget *tab, chan *ch)
 
 	inner = ((tabview *)cv)->inner;
 	/* see if a family for this tab already exists */
-	boxes = GTK_BOX (inner)->children;
+	boxes = gtk_container_get_children (GTK_BOX (inner));
 	while (boxes)
 	{
 		child = boxes->data;
@@ -441,7 +443,7 @@ tab_add_real (chanview *cv, GtkWidget *tab, chan *ch)
 		if (g_object_get_data (G_OBJECT (box), "f") == ch->family)
 		{
 			tab_add_sorted (cv, box, tab, ch);
-			gtk_widget_queue_resize (inner->parent);
+			gtk_widget_queue_resize (gtk_widget_get_parent (inner));
 			return;
 		}
 
@@ -449,7 +451,7 @@ tab_add_real (chanview *cv, GtkWidget *tab, chan *ch)
 
 		/* check if the box is empty (except a vseperator) */
 		empty = TRUE;
-		children = GTK_BOX (box)->children;
+		children = gtk_container_get_children (GTK_BOX (box));
 		while (children)
 		{
 			if (!GTK_IS_SEPARATOR (((GtkBoxChild *)children->data)->widget))
@@ -484,7 +486,7 @@ tab_add_real (chanview *cv, GtkWidget *tab, chan *ch)
 	gtk_box_pack_start (GTK_BOX (box), tab, 0, 0, 0);
 	gtk_widget_show (tab);
 	gtk_widget_show (box);
-	gtk_widget_queue_resize (inner->parent);
+	gtk_widget_queue_resize (gtk_widget_get_parent (inner));
 }
 
 static gboolean
@@ -595,12 +597,12 @@ tab_group_for_each_tab (chanview *cv,
 	int i;
 
 	innerbox = (GtkBox *) ((tabview *)cv)->inner;
-	boxes = innerbox->children;
+	boxes = gtk_container_get_children (innerbox);
 	i = 0;
 	while (boxes)
 	{
 		child = boxes->data;
-		tabs = GTK_BOX (child->widget)->children;
+		tabs = gtk_container_get_children (GTK_BOX (child->widget));
 
 		while (tabs)
 		{
@@ -624,7 +626,7 @@ tab_group_for_each_tab (chanview *cv,
 static int
 tab_check_focus_cb (GtkWidget *tab, int num, int unused)
 {
-	if (GTK_TOGGLE_BUTTON (tab)->active)
+	if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (tab)))
 		return num;
 
 	return -1;
@@ -707,10 +709,10 @@ cv_tabs_move (chan *ch, int delta)
 {
 	int i, pos = 0;
 	GList *list;
-	GtkWidget *parent = ((GtkWidget *)ch->impl)->parent;
+	GtkWidget *parent = gtk_widget_get_parent (((GtkWidget *)ch->impl));
 
 	i = 0;
-	for (list = GTK_BOX (parent)->children; list; list = list->next)
+	for (list = gtk_container_get_children (GTK_BOX (parent)); list; list = list->next)
 	{
 		GtkBoxChild *child_entry;
 
@@ -733,7 +735,7 @@ cv_tabs_move_family (chan *ch, int delta)
 
 	/* find position of tab's family */
 	i = 0;
-	for (list = GTK_BOX (((tabview *)ch->cv)->inner)->children; list; list = list->next)
+	for (list = gtk_container_get_children (GTK_BOX (((tabview *)ch->cv)->inner)); list; list = list->next)
 	{
 		GtkBoxChild *child_entry;
 		void *fam;
@@ -749,7 +751,7 @@ cv_tabs_move_family (chan *ch, int delta)
 	}
 
 	pos = (pos - delta) % i;
-	gtk_box_reorder_child (GTK_BOX (box->parent), box, pos);
+	gtk_box_reorder_child (GTK_BOX (gtk_widget_get_parent (box)), box, pos);
 }
 
 static void
@@ -762,7 +764,7 @@ cv_tabs_cleanup (chanview *cv)
 static void
 cv_tabs_set_color (chan *ch, PangoAttrList *list)
 {
-	gtk_label_set_attributes (GTK_LABEL (GTK_BIN (ch->impl)->child), list);
+	gtk_label_set_attributes (GTK_LABEL (gtk_bin_get_child (GTK_BIN (ch->impl))), list);
 }
 
 static void
@@ -771,16 +773,16 @@ cv_tabs_rename (chan *ch, char *name)
 	PangoAttrList *attr;
 	GtkWidget *tab = ch->impl;
 
-	attr = gtk_label_get_attributes (GTK_LABEL (GTK_BIN (tab)->child));
+	attr = gtk_label_get_attributes (GTK_LABEL (gtk_bin_get_child (GTK_BIN (tab))));
 	if (attr)
 		pango_attr_list_ref (attr);
 
 	gtk_button_set_label (GTK_BUTTON (tab), name);
-	gtk_widget_queue_resize (tab->parent->parent->parent);
+	gtk_widget_queue_resize (gtk_widget_get_parent (gtk_widget_get_parent (gtk_widget_get_parent (tab))));
 
 	if (attr)
 	{
-		gtk_label_set_attributes (GTK_LABEL (GTK_BIN (tab)->child), attr);
+		gtk_label_set_attributes (GTK_LABEL (gtk_bin_get_child (GTK_BIN (tab))), attr);
 		pango_attr_list_unref (attr);
 	}
 }
