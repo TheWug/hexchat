@@ -495,8 +495,7 @@ server_connected (server * serv)
 	serv->iotag = fe_input_add (serv->sok, FIA_READ|FIA_EX, server_read, serv);
 	if (!serv->no_login)
 	{
-		EMIT_SIGNAL (XP_TE_CONNECTED, serv->server_session, NULL, NULL, NULL,
-						 NULL, NULL);
+		EMITX_SIGNAL (XP_TE_CONNECTED, serv->server_session);
 		if (serv->network)
 		{
 			serv->p_login (serv,
@@ -514,8 +513,7 @@ server_connected (server * serv)
 		}
 	} else
 	{
-		EMIT_SIGNAL (XP_TE_SERVERCONNECTED, serv->server_session, NULL, NULL,
-						 NULL, NULL, NULL);
+		EMITX_SIGNAL (XP_TE_SERVERCONNECTED, serv->server_session);
 	}
 
 	server_set_name (serv, serv->servername);
@@ -595,7 +593,7 @@ ssl_cb_info (SSL * s, int where, int ret)
 
 /*	snprintf (buf, sizeof (buf), "%s (%d)", SSL_state_string_long (s), where);
 	if (g_sess)
-		EMIT_SIGNAL (XP_TE_SSLMESSAGE, g_sess, buf, NULL, NULL, NULL, NULL);
+		EMITX_SIGNAL (XP_TE_SSLMESSAGE, g_sess, buf);
 	else
 		fprintf (stderr, "%s\n", buf);*/
 }
@@ -614,9 +612,9 @@ ssl_cb_verify (int ok, X509_STORE_CTX * ctx)
 							 sizeof (issuer));
 
 	snprintf (buf, sizeof (buf), "* Subject: %s", subject);
-	EMIT_SIGNAL (XP_TE_SSLMESSAGE, g_sess, buf, NULL, NULL, NULL, NULL);
+	EMITX_SIGNAL (XP_TE_SSLMESSAGE, g_sess, buf);
 	snprintf (buf, sizeof (buf), "* Issuer: %s", issuer);
-	EMIT_SIGNAL (XP_TE_SSLMESSAGE, g_sess, buf, NULL, NULL, NULL, NULL);
+	EMITX_SIGNAL (XP_TE_SSLMESSAGE, g_sess, buf);
 
 	return (TRUE);					  /* always ok */
 }
@@ -637,8 +635,7 @@ ssl_do_connect (server * serv)
 		{
 			ERR_error_string (err, err_buf);
 			snprintf (buf, sizeof (buf), "(%d) %s", err, err_buf);
-			EMIT_SIGNAL (XP_TE_CONNFAIL, serv->server_session, buf, NULL,
-							 NULL, NULL, NULL);
+			EMITX_SIGNAL (XP_TE_CONNFAIL, serv->server_session, buf);
 
 			if (ERR_GET_REASON (err) == SSL_R_WRONG_VERSION_NUMBER)
 				PrintText (serv->server_session, _("Are you sure this is a SSL capable server and port?\n"));
@@ -663,69 +660,57 @@ ssl_do_connect (server * serv)
 		if (!_SSL_get_cert_info (&cert_info, serv->ssl))
 		{
 			snprintf (buf, sizeof (buf), "* Certification info:");
-			EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL,
-							 NULL, NULL);
+			EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 			snprintf (buf, sizeof (buf), "  Subject:");
-			EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL,
-							 NULL, NULL);
+			EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 			for (i = 0; cert_info.subject_word[i]; i++)
 			{
 				snprintf (buf, sizeof (buf), "    %s", cert_info.subject_word[i]);
-				EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL,
-								 NULL, NULL);
+				EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 			}
 			snprintf (buf, sizeof (buf), "  Issuer:");
-			EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL,
-							 NULL, NULL);
+			EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 			for (i = 0; cert_info.issuer_word[i]; i++)
 			{
 				snprintf (buf, sizeof (buf), "    %s", cert_info.issuer_word[i]);
-				EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL,
-								 NULL, NULL);
+				EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 			}
 			snprintf (buf, sizeof (buf), "  Public key algorithm: %s (%d bits)",
 						 cert_info.algorithm, cert_info.algorithm_bits);
-			EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL,
-							 NULL, NULL);
+			EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 			/*if (cert_info.rsa_tmp_bits)
 			{
 				snprintf (buf, sizeof (buf),
 							 "  Public key algorithm uses ephemeral key with %d bits",
 							 cert_info.rsa_tmp_bits);
-				EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL,
-								 NULL, NULL);
+				EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 			}*/
 			snprintf (buf, sizeof (buf), "  Sign algorithm %s",
 						 cert_info.sign_algorithm/*, cert_info.sign_algorithm_bits*/);
-			EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL,
-							 NULL, NULL);
+			EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 			snprintf (buf, sizeof (buf), "  Valid since %s to %s",
 						 cert_info.notbefore, cert_info.notafter);
-			EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL,
-							 NULL, NULL);
+			EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 		} else
 		{
 			snprintf (buf, sizeof (buf), " * No Certificate");
-			EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL,
-							 NULL, NULL);
+			EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 		}
 
 		chiper_info = _SSL_get_cipher_info (serv->ssl);	/* static buffer */
 		snprintf (buf, sizeof (buf), "* Cipher info:");
-		EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL, NULL,
-						 NULL);
+		EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 		snprintf (buf, sizeof (buf), "  Version: %s, cipher %s (%u bits)",
 					 chiper_info->version, chiper_info->chiper,
 					 chiper_info->chiper_bits);
-		EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL, NULL,
-						 NULL);
+		EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 
 		verify_error = SSL_get_verify_result (serv->ssl);
 		switch (verify_error)
 		{
 		case X509_V_OK:
 			/* snprintf (buf, sizeof (buf), "* Verify OK (?)"); */
-			/* EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL, NULL, NULL); */
+			/* EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf); */
 			break;
 		case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
 		case X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE:
@@ -737,16 +722,14 @@ ssl_do_connect (server * serv)
 				snprintf (buf, sizeof (buf), "* Verify E: %s.? (%d) -- Ignored",
 							 X509_verify_cert_error_string (verify_error),
 							 verify_error);
-				EMIT_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf, NULL, NULL,
-								 NULL, NULL);
+				EMITX_SIGNAL (XP_TE_SSLMESSAGE, serv->server_session, buf);
 				break;
 			}
 		default:
 			snprintf (buf, sizeof (buf), "%s.? (%d)",
 						 X509_verify_cert_error_string (verify_error),
 						 verify_error);
-			EMIT_SIGNAL (XP_TE_CONNFAIL, serv->server_session, buf, NULL, NULL,
-							 NULL, NULL);
+			EMITX_SIGNAL (XP_TE_CONNFAIL, serv->server_session, buf);
 
 			server_cleanup (serv);
 
@@ -764,8 +747,7 @@ ssl_do_connect (server * serv)
 		if (serv->ssl->session && serv->ssl->session->time + SSLTMOUT < time (NULL))
 		{
 			snprintf (buf, sizeof (buf), "SSL handshake timed out");
-			EMIT_SIGNAL (XP_TE_CONNFAIL, serv->server_session, buf, NULL,
-							 NULL, NULL, NULL);
+			EMITX_SIGNAL (XP_TE_CONNFAIL, serv->server_session, buf);
 			server_cleanup (serv); /* ->connecting = FALSE */
 
 			if (prefs.hex_net_auto_reconnectonfail)
@@ -864,8 +846,7 @@ server_connect_success (server *serv)
 		serv->ssl = _SSL_socket (ctx, serv->sok);
 		if ((err = _SSL_set_verify (ctx, ssl_cb_verify, NULL)))
 		{
-			EMIT_SIGNAL (XP_TE_CONNFAIL, serv->server_session, err, NULL,
-							 NULL, NULL, NULL);
+			EMITX_SIGNAL (XP_TE_CONNFAIL, serv->server_session, err);
 			server_cleanup (serv);	/* ->connecting = FALSE */
 			return;
 		}
@@ -917,7 +898,7 @@ server_read_child (GIOChannel *source, GIOCondition condition, server *serv)
 		if (serv->proxy_sok6 != -1)
 			closesocket (serv->proxy_sok6);
 #endif
-		EMIT_SIGNAL (XP_TE_UKNHOST, sess, NULL, NULL, NULL, NULL, NULL);
+		EMITX_SIGNAL (XP_TE_UKNHOST, sess);
 		if (!servlist_cycle (serv))
 			if (prefs.hex_net_auto_reconnectonfail)
 				auto_reconnect (serv, FALSE, -1);
@@ -934,8 +915,7 @@ server_read_child (GIOChannel *source, GIOCondition condition, server *serv)
 		if (serv->proxy_sok6 != -1)
 			closesocket (serv->proxy_sok6);
 #endif
-		EMIT_SIGNAL (XP_TE_CONNFAIL, sess, errorstring (atoi (tbuf)), NULL,
-						 NULL, NULL, NULL);
+		EMITX_SIGNAL (XP_TE_CONNFAIL, sess, errorstring (atoi (tbuf)));
 		if (!servlist_cycle (serv))
 			if (prefs.hex_net_auto_reconnectonfail)
 				auto_reconnect (serv, FALSE, -1);
@@ -944,7 +924,7 @@ server_read_child (GIOChannel *source, GIOCondition condition, server *serv)
 		waitline2 (source, host, sizeof host);
 		waitline2 (source, ip, sizeof ip);
 		waitline2 (source, outbuf, sizeof outbuf);
-		EMIT_SIGNAL (XP_TE_CONNECT, sess, host, ip, outbuf, NULL, NULL);
+		EMITX_SIGNAL (XP_TE_CONNECT, sess, host, ip, outbuf);
 #ifdef WIN32
 		if (prefs.hex_identd)
 		{
@@ -1019,7 +999,7 @@ server_read_child (GIOChannel *source, GIOCondition condition, server *serv)
 		break;
 	case '9':
 		waitline2 (source, tbuf, sizeof tbuf);
-		EMIT_SIGNAL (XP_TE_SERVERLOOKUP, sess, tbuf, NULL, NULL, NULL, NULL);
+		EMITX_SIGNAL (XP_TE_SERVERLOOKUP, sess, tbuf);
 		break;
 	}
 
@@ -1113,7 +1093,7 @@ server_disconnect (session * sess, int sendquit, int err)
 		return;
 	case 1:							  /* it was in the process of connecting */
 		sprintf (tbuf, "%d", sess->server->childpid);
-		EMIT_SIGNAL (XP_TE_STOPCONNECT, sess, tbuf, NULL, NULL, NULL, NULL);
+		EMITX_SIGNAL (XP_TE_STOPCONNECT, sess, tbuf);
 		return;
 	case 3:
 		shutup = TRUE;	/* won't print "disconnected" in channels */
@@ -1129,7 +1109,7 @@ server_disconnect (session * sess, int sendquit, int err)
 		{
 			if (!shutup || sess->type == SESS_SERVER)
 				/* print "Disconnected" to each window using this server */
-				EMIT_SIGNAL (XP_TE_DISCON, sess, errorstring (err), NULL, NULL, NULL, NULL);
+				EMITX_SIGNAL (XP_TE_DISCON, sess, errorstring (err));
 
 			if (!sess->channel[0] || sess->type == SESS_CHANNEL)
 				clear_channel (sess);
@@ -1695,7 +1675,7 @@ server_connect (server *serv, char *hostname, int port, int no_login)
 
 	fe_progressbar_start (sess);
 
-	EMIT_SIGNAL (XP_TE_SERVERLOOKUP, sess, hostname, NULL, NULL, NULL, NULL);
+	EMITX_SIGNAL (XP_TE_SERVERLOOKUP, sess, hostname);
 
 	safe_strcpy (serv->servername, hostname, sizeof (serv->servername));
 	/* overlap illegal in strncpy */

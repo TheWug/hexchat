@@ -162,13 +162,11 @@ ctcp_handle (session *sess, char *to, char *nick, char *ip,
 				if (!chansess)
 					chansess = sess;
 
-				EMIT_SIGNAL_TIMESTAMP (XP_TE_CTCPSNDC, chansess, word[5],
-											  nick, to, NULL, NULL, tags_data->timestamp);
+				EMITX_SIGNAL_TIMESTAMP (XP_TE_CTCPSNDC, chansess, tags_data->timestamp, word[5], nick, to);
 			} else
 			{
-				EMIT_SIGNAL_TIMESTAMP (XP_TE_CTCPSND, sess->server->front_session,
-											  word[5], nick, NULL, NULL, NULL,
-											  tags_data->timestamp);
+				EMITX_SIGNAL_TIMESTAMP (XP_TE_CTCPSND, sess->server->front_session, 
+										tags_data->timestamp, word[5], nick);
 			}
 
 			/* don't let IRCers specify path */
@@ -189,14 +187,13 @@ generic:
 
 	if (!is_channel (sess->server, to))
 	{
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_CTCPGEN, sess->server->front_session, msg,
-									  nick, NULL, NULL, NULL, tags_data->timestamp);
+		EMITX_SIGNAL_TIMESTAMP (XP_TE_CTCPGEN, sess->server->front_session, tags_data->timestamp, msg,
+									  nick);
 	} else
 	{
 		chansess = find_channel (sess->server, to);
 		if (!chansess)
 			chansess = sess;
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_CTCPGENC, chansess, msg, nick, to, NULL, NULL,
-									  tags_data->timestamp);
+		EMITX_SIGNAL_TIMESTAMP (XP_TE_CTCPGENC, chansess, tags_data->timestamp, msg, nick, to);
 	}
 }

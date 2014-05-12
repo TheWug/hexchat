@@ -24,10 +24,10 @@
 #define HEXCHAT_TEXT_H
 
 /* timestamp is non-zero if we are using server-time */
-#define EMIT_SIGNAL_TIMESTAMP(i, sess, a, b, c, d, e, timestamp) \
-	text_emit(i, sess, a, b, c, d, e, timestamp)
-#define EMIT_SIGNAL(i, sess, a, b, c, d, e) \
-	text_emit(i, sess, a, b, c, d, e, 0)
+#define EMITX_SIGNAL_TIMESTAMP(i, sess, timestamp, ...) \
+	text_emit(i, sess, timestamp, (char *[]) {NULL, __VA_ARGS__, NULL})
+#define EMITX_SIGNAL(i, sess, ...) \
+	text_emit(i, sess, 0, (char *[]) {NULL, __VA_ARGS__, NULL})
 
 struct text_event
 {
@@ -43,7 +43,7 @@ void scrollback_load (session *sess);
 int text_word_check (char *word, int len);
 void PrintText (session *sess, char *text);
 void PrintTextTimeStamp (session *sess, char *text, time_t timestamp);
-void PrintTextf (session *sess, char *format, ...);
+void PrintTextf (session *sess, char *format, );
 void PrintTextTimeStampf (session *sess, time_t timestamp, char *format, ...);
 void log_close (session *sess);
 void log_open_or_close (session *sess);
@@ -53,10 +53,8 @@ int pevt_build_string (const char *input, char **output, int *max_arg);
 int pevent_load (char *filename);
 void pevent_make_pntevts (void);
 int text_color_of (char *name);
-void text_emit (int index, session *sess, char *a, char *b, char *c, char *d, char *e,
-		time_t timestamp);
-int text_emit_by_name (char *name, session *sess, time_t timestamp,
-					   char *a, char *b, char *c, char *d, char *e);
+void text_emit (int index, session *sess, time_t timestamp, char *args[]);
+int text_emit_by_name (char *name, session *sess, time_t timestamp, char *args[]);
 char *text_validate (char **text, int *len);
 int get_stamp_str (char *fmt, time_t tim, char **ret);
 void format_event (session *sess, int index, char **args, char *o, int sizeofo, unsigned int stripcolor_args);

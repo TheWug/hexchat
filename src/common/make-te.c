@@ -23,12 +23,12 @@
  *
  *  - The number in the ending lines indicates the total number of arguments
  *    a text event supports. So don't touch them unless you actually modify the
- *    EMIT_SIGNAL commands, too.
+ *    EMITX_SIGNAL commands, too.
  *
  *  - The "n" prefix means the event text does not have to be translated thus
  *    the N_() gettext encapsulation will be omitted.
  *
- *  - EMIT_SIGNAL is just a macro for text_emit() which can take a total amount
+ *  - EMITX_SIGNAL is just a macro for text_emit() which can take a total amount
  *    of 4 event arguments, so events have a hard limit of 4 arguments.
  *
  *  - $t means the xtext tab, i.e. the vertical separator line for indented nicks.

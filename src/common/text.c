@@ -369,7 +369,7 @@ scrollback_load (session *sess)
 		buf = g_strdup_printf ("\n*\t%s %s\n\n", _("Loaded log from"), text);
 		fe_print_text (sess, buf, 0, TRUE);
 		g_free (buf);
-		/*EMIT_SIGNAL (XP_TE_GENMSG, sess, "*", buf, NULL, NULL, NULL, 0);*/
+		/*EMITX_SIGNAL (XP_TE_GENMSG, sess, "*", buf);*/
 	}
 }
 
@@ -2102,13 +2102,11 @@ text_color_of (char *name)
 }
 
 
-/* called by EMIT_SIGNAL macro */
+/* called by EMITX_SIGNAL macro */
 
 void
-text_emit (int index, session *sess, char *a, char *b, char *c, char *d, char *e,
-			  time_t timestamp)
+text_emit (int index, session *sess, time_t timestamp, char *word[])
 {
-	char *word[PDIWORDS];
 	int i;
 	unsigned int stripcolor_args = (chanopt_is_set (prefs.hex_text_stripcolor_msg, sess->text_strip) ? 0xFFFFFFFF : 0);
 	char tbuf[NICKLEN + 4];
@@ -2121,13 +2119,6 @@ text_emit (int index, session *sess, char *a, char *b, char *c, char *d, char *e
 	}
 
 	word[0] = te[index].name;
-	word[1] = (a ? a : "\000");
-	word[2] = (b ? b : "\000");
-	word[3] = (c ? c : "\000");
-	word[4] = (d ? d : "\000");
-	word[5] = (e ? e : "\000");
-	for (i = 6; i < PDIWORDS; i++)
-		word[i] = "\000";
 
 	if (plugin_emit_print (sess, word, timestamp))
 		return;
@@ -2203,15 +2194,14 @@ text_find_format_string (char *name)
 }
 
 int
-text_emit_by_name (char *name, session *sess, time_t timestamp,
-				   char *a, char *b, char *c, char *d, char *e)
+text_emit_by_name (char *name, session *sess, time_t timestamp, char *args[])
 {
 	int i = 0;
 
 	i = pevent_find (name, &i);
 	if (i >= 0)
 	{
-		text_emit (i, sess, a, b, c, d, e, timestamp);
+		text_emit (i, sess, timestamp, args);
 		return 1;
 	}
 
