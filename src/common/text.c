@@ -1049,6 +1049,14 @@ static char * const pevt_chanmsg_help[] = {
 	N_("Identified text"),
 };
 
+static char * const pevt_pchanmsg_help[] = {
+	N_("Nickname"),
+	N_("The text"),
+	N_("Mode char"),
+	N_("Identified text"),
+	N_("Prefix char"),
+};
+
 static char * const pevt_privmsg_help[] = {
 	N_("Nickname"),
 	N_("The message"),
@@ -2097,7 +2105,7 @@ text_color_of (char *name)
 /* called by EMIT_SIGNAL macro */
 
 void
-text_emit (int index, session *sess, char *a, char *b, char *c, char *d,
+text_emit (int index, session *sess, char *a, char *b, char *c, char *d, char *e,
 			  time_t timestamp)
 {
 	char *word[PDIWORDS];
@@ -2117,7 +2125,8 @@ text_emit (int index, session *sess, char *a, char *b, char *c, char *d,
 	word[2] = (b ? b : "\000");
 	word[3] = (c ? c : "\000");
 	word[4] = (d ? d : "\000");
-	for (i = 5; i < PDIWORDS; i++)
+	word[5] = (e ? e : "\000");
+	for (i = 6; i < PDIWORDS; i++)
 		word[i] = "\000";
 
 	if (plugin_emit_print (sess, word, timestamp))
@@ -2155,6 +2164,7 @@ text_emit (int index, session *sess, char *a, char *b, char *c, char *d,
 	/* ===Highlighted message=== */
 	case XP_TE_HCHANACTION:
 	case XP_TE_HCHANMSG:
+	case XP_TE_HPCHANMSG:
 		if (chanopt_is_set (prefs.hex_input_beep_hilight, sess->alert_beep) && (!prefs.hex_away_omit_alerts || !sess->server->is_away))
 			sound_beep (sess);
 		if (chanopt_is_set (prefs.hex_input_flash_hilight, sess->alert_taskbar) && (!prefs.hex_away_omit_alerts || !sess->server->is_away))
@@ -2166,6 +2176,7 @@ text_emit (int index, session *sess, char *a, char *b, char *c, char *d,
 	/* ===Channel message=== */
 	case XP_TE_CHANACTION:
 	case XP_TE_CHANMSG:
+	case XP_TE_PCHANMSG:
 		if (chanopt_is_set (prefs.hex_input_beep_chans, sess->alert_beep) && (!prefs.hex_away_omit_alerts || !sess->server->is_away))
 			sound_beep (sess);
 		if (chanopt_is_set (prefs.hex_input_flash_chans, sess->alert_taskbar) && (!prefs.hex_away_omit_alerts || !sess->server->is_away))
@@ -2193,14 +2204,14 @@ text_find_format_string (char *name)
 
 int
 text_emit_by_name (char *name, session *sess, time_t timestamp,
-				   char *a, char *b, char *c, char *d)
+				   char *a, char *b, char *c, char *d, char *e)
 {
 	int i = 0;
 
 	i = pevent_find (name, &i);
 	if (i >= 0)
 	{
-		text_emit (i, sess, a, b, c, d, timestamp);
+		text_emit (i, sess, a, b, c, d, e, timestamp);
 		return 1;
 	}
 

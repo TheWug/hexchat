@@ -25,9 +25,9 @@
 
 /* timestamp is non-zero if we are using server-time */
 #define EMIT_SIGNAL_TIMESTAMP(i, sess, a, b, c, d, e, timestamp) \
-	text_emit(i, sess, a, b, c, d, timestamp)
+	text_emit(i, sess, a, b, c, d, e, timestamp)
 #define EMIT_SIGNAL(i, sess, a, b, c, d, e) \
-	text_emit(i, sess, a, b, c, d, 0)
+	text_emit(i, sess, a, b, c, d, e, 0)
 
 struct text_event
 {
@@ -53,10 +53,10 @@ int pevt_build_string (const char *input, char **output, int *max_arg);
 int pevent_load (char *filename);
 void pevent_make_pntevts (void);
 int text_color_of (char *name);
-void text_emit (int index, session *sess, char *a, char *b, char *c, char *d,
+void text_emit (int index, session *sess, char *a, char *b, char *c, char *d, char *e,
 		time_t timestamp);
 int text_emit_by_name (char *name, session *sess, time_t timestamp,
-					   char *a, char *b, char *c, char *d);
+					   char *a, char *b, char *c, char *d, char *e);
 char *text_validate (char **text, int *len);
 int get_stamp_str (char *fmt, time_t tim, char **ret);
 void format_event (session *sess, int index, char **args, char *o, int sizeofo, unsigned int stripcolor_args);
