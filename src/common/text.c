@@ -1042,6 +1042,14 @@ static char * const pevt_chanaction_help[] = {
 	N_("Identified text"),
 };
 
+static char * const pevt_pchanaction_help[] = {
+	N_("Nickname"),
+	N_("The action"),
+	N_("Mode char"),
+	N_("Identified text"),
+	N_("Prefix char"),
+};
+
 static char * const pevt_chanmsg_help[] = {
 	N_("Nickname"),
 	N_("The text"),

@@ -52,10 +52,22 @@ pevt_chanaction_help
 %C18*$t%B$1%O $2
 n4
 
+Channel Action Prefix
+XP_TE_PCHANACTION
+pevt_pchanaction_help
+[$5] %C18*$t%B$1%O $2
+n4
+
 Channel Action Hilight
 XP_TE_HCHANACTION
 pevt_chanaction_help
 %C19*$t%B$1%B $2%O
+n4
+
+Channel Action Hilight Prefix
+XP_TE_HPCHANACTION
+pevt_pchanaction_help
+[$5] %C19*$t%B$1%B $2%O
 n4
 
 Channel Ban
@@ -124,12 +136,6 @@ pevt_pchanmsg_help
 [$5] %C18%H<%H$4$1%C18%H>%H%O$t$2
 n4
 
-Channel Message Prefix Hilight
-XP_TE_HPCHANMSG
-pevt_pchanmsg_help
-[$5] %C19%H<%H$4%B$1%B%H>%H$t$2%O
-n4
-
 Channel Mode Generic
 XP_TE_CHANMODEGEN
 pevt_chanmodegen_help
@@ -146,6 +152,12 @@ Channel Msg Hilight
 XP_TE_HCHANMSG
 pevt_chanmsg_help
 %C19%H<%H$4%B$1%B%H>%H$t$2%O
+n4
+
+Channel Msg Hilight Prefix
+XP_TE_HPCHANMSG
+pevt_pchanmsg_help
+[$5] %C19%H<%H$4%B$1%B%H>%H$t$2%O
 n4
 
 Channel Notice

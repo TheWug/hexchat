@@ -335,6 +335,7 @@ inbound_action (session *sess, char *chan, char *from, char *ip, char *text,
 	server *serv = sess->server;
 	struct User *user;
 	char nickchar[2] = "\000";
+	char prefixchar[2] = "\000";
 	char idtext[64];
 	int privaction = FALSE;
 
@@ -342,6 +343,11 @@ inbound_action (session *sess, char *chan, char *from, char *ip, char *text,
 	{
 		if (is_channel (serv, chan))
 		{
+			sess = find_channel (serv, chan);
+		} else if (strchr(serv->nick_prefixes, chan[0]))
+		{
+			prefixchar[0] = chan[0];
+			chan++;
 			sess = find_channel (serv, chan);
 		} else
 		{
@@ -398,20 +404,28 @@ inbound_action (session *sess, char *chan, char *from, char *ip, char *text,
 
 	inbound_make_idtext (serv, idtext, sizeof (idtext), id);
 
-	if (!fromme && !privaction)
+	if (!fromme && !privaction && is_hilight (from, text, sess, serv))
 	{
-		if (is_hilight (from, text, sess, serv))
-		{
-			EMIT_SIGNAL_TIMESTAMP (XP_TE_HCHANACTION, sess, tags_data->timestamp, from, text, nickchar,
-										  idtext);
-			return;
-		}
+		if (*prefixchar == '\0')
+			EMIT_SIGNAL_TIMESTAMP (XP_TE_HCHANACTION, sess, tags_data->timestamp, from, text, nickchar, idtext);
+		else
+			EMIT_SIGNAL_TIMESTAMP (XP_TE_HPCHANACTION, sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
 	}
-
-	if (fromme)
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_UACTION, sess, tags_data->timestamp, from, text, nickchar, idtext);
+	else if (fromme)
+	{
+		// not possible yet, a new command will be needed for it (/me+ or something)
+//		if (*prefixchar == '\0')
+			EMIT_SIGNAL_TIMESTAMP (XP_TE_UACTION, sess, tags_data->timestamp, from, text, nickchar, idtext);
+//		else
+//			EMIT_SIGNAL_TIMESTAMP (XP_TE_UPACTION, sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
+	}
 	else if (!privaction)
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANACTION, sess, tags_data->timestamp, from, text, nickchar, idtext);
+	{
+		if (*prefixchar == '\0')
+			EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANACTION, sess, tags_data->timestamp, from, text, nickchar, idtext);
+		else
+			EMIT_SIGNAL_TIMESTAMP (XP_TE_PCHANACTION, sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
+	}
 	else if (sess->type == SESS_DIALOG)
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_DPRIVACTION, sess, tags_data->timestamp, from, text, idtext);
 	else
