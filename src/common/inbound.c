@@ -432,6 +432,7 @@ inbound_chanmsg (server *serv, session *sess, char *chan, char *from,
 {
 	struct User *user;
 	int hilight = FALSE;
+	char prefixchar[2] = "\000";
 	char nickchar[2] = "\000";
 	char idtext[64];
 
@@ -439,8 +440,18 @@ inbound_chanmsg (server *serv, session *sess, char *chan, char *from,
 	{
 		if (chan)
 		{
-			sess = find_channel (serv, chan);
-			if (!sess && !is_channel (serv, chan))
+			if (is_channel(serv, chan))
+				sess = find_channel (serv, chan);
+
+			// /privmsg [mode-prefix]#channel should end up in that channel
+			else if (strchr(serv->nick_prefixes, chan[0]))
+			{
+				prefixchar[0] = chan[0];
+				chan++;
+				sess = find_channel (serv, chan);
+			}
+
+			else
 				sess = find_dialog (serv, chan);
 		} else
 		{
@@ -485,12 +496,12 @@ inbound_chanmsg (server *serv, session *sess, char *chan, char *from,
 	if (sess->type == SESS_DIALOG)
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_DPRIVMSG, sess, from, text, idtext, NULL, 0,
 									  tags_data->timestamp);
-	else if (hilight)
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_HCHANMSG, sess, from, text, nickchar, idtext,
-									  0, tags_data->timestamp);
-	else
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANMSG, sess, from, text, nickchar, idtext,
-									  0, tags_data->timestamp);
+	else //if (*prefixchar == '\0')
+		EMIT_SIGNAL_TIMESTAMP (hilight ? XP_TE_HCHANMSG : XP_TE_CHANMSG, 
+					sess, from, text, nickchar, idtext, 0, tags_data->timestamp);
+	//else
+	//	EMIT_SIGNAL_TIMESTAMP (hilight ? XP_TE_HCHANMSG : XP_TE_CHANMSG, 
+	//				sess, from, text, nickchar, idtext, 0, tags_data->timestamp);
 }
 
 void
