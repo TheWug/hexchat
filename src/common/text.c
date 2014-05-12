@@ -369,7 +369,7 @@ scrollback_load (session *sess)
 		buf = g_strdup_printf ("\n*\t%s %s\n\n", _("Loaded log from"), text);
 		fe_print_text (sess, buf, 0, TRUE);
 		g_free (buf);
-		/*EMITX_SIGNAL (XP_TE_GENMSG, sess, "*", buf);*/
+		/*EMIT_SIGNAL (XP_TE_GENMSG, sess, "*", buf);*/
 	}
 }
 
@@ -2102,19 +2102,18 @@ text_color_of (char *name)
 }
 
 
-/* called by EMITX_SIGNAL macro */
+/* called by EMIT_SIGNAL macro */
 
 void
 text_emit (int index, session *sess, time_t timestamp, char *word[])
 {
-	int i;
 	unsigned int stripcolor_args = (chanopt_is_set (prefs.hex_text_stripcolor_msg, sess->text_strip) ? 0xFFFFFFFF : 0);
 	char tbuf[NICKLEN + 4];
 
 	if (prefs.hex_text_color_nicks && (index == XP_TE_CHANACTION || index == XP_TE_CHANMSG || index == XP_TE_PCHANMSG))
 	{
-		snprintf (tbuf, sizeof (tbuf), "\003%d%s", text_color_of (a), a);
-		a = tbuf;
+		snprintf (tbuf, sizeof (tbuf), "\003%d%s", text_color_of (word[1]), word[1]);
+		word[1] = tbuf;
 		stripcolor_args &= ~ARG_FLAG(1);	/* don't strip color from this argument */
 	}
 

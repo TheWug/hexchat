@@ -127,7 +127,7 @@ n4
 Channel Message Prefix Hilight
 XP_TE_HPCHANMSG
 pevt_pchanmsg_help
-[$5] %C19%H<%H$4$1%C18%H>%H%O$t$2
+[$5] %C19%H<%H$4%B$1%B%H>%H$t$2%O
 n4
 
 Channel Mode Generic

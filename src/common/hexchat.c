@@ -282,7 +282,7 @@ lag_check (void)
 			if (prefs.hex_net_ping_timeout && lag > prefs.hex_net_ping_timeout && lag > 0)
 			{
 				sprintf (tbuf, "%d", lag);
-				EMITX_SIGNAL (XP_TE_PINGTIMEOUT, serv->server_session, tbuf);
+				EMIT_SIGNAL (XP_TE_PINGTIMEOUT, serv->server_session, tbuf);
 				if (prefs.hex_net_auto_reconnect)
 					serv->auto_reconnect (serv, FALSE, -1);
 			} else

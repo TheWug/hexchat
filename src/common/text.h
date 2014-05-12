@@ -23,10 +23,11 @@
 #ifndef HEXCHAT_TEXT_H
 #define HEXCHAT_TEXT_H
 
+/* the only problem with these macros is that you must specify at least one argument. NULL works just fine */
 /* timestamp is non-zero if we are using server-time */
-#define EMITX_SIGNAL_TIMESTAMP(i, sess, timestamp, ...) \
+#define EMIT_SIGNAL_TIMESTAMP(i, sess, timestamp, ...) \
 	text_emit(i, sess, timestamp, (char *[]) {NULL, __VA_ARGS__, NULL})
-#define EMITX_SIGNAL(i, sess, ...) \
+#define EMIT_SIGNAL(i, sess, ...) \
 	text_emit(i, sess, 0, (char *[]) {NULL, __VA_ARGS__, NULL})
 
 struct text_event
@@ -43,7 +44,7 @@ void scrollback_load (session *sess);
 int text_word_check (char *word, int len);
 void PrintText (session *sess, char *text);
 void PrintTextTimeStamp (session *sess, char *text, time_t timestamp);
-void PrintTextf (session *sess, char *format, );
+void PrintTextf (session *sess, char *format, ...);
 void PrintTextTimeStampf (session *sess, time_t timestamp, char *format, ...);
 void log_close (session *sess);
 void log_open_or_close (session *sess);

@@ -263,7 +263,7 @@ dcc_check_timeouts (void)
 					if (!dcc->throttled
 						&& tim - dcc->lasttime > prefs.hex_dcc_stall_timeout)
 					{
-						EMITX_SIGNAL (XP_TE_DCCSTALL, dcc->serv->front_session,
+						EMIT_SIGNAL (XP_TE_DCCSTALL, dcc->serv->front_session,
 										 dcctypes[dcc->type],
 										 file_part (dcc->file), dcc->nick);
 						dcc_close (dcc, STAT_ABORTED, FALSE);
@@ -278,7 +278,7 @@ dcc_check_timeouts (void)
 				{
 					if (prefs.hex_dcc_timeout > 0)
 					{
-						EMITX_SIGNAL (XP_TE_DCCTOUT, dcc->serv->front_session,
+						EMIT_SIGNAL (XP_TE_DCCTOUT, dcc->serv->front_session,
 										 dcctypes[dcc->type],
 										 file_part (dcc->file), dcc->nick);
 						dcc_close (dcc, STAT_ABORTED, FALSE);
@@ -446,14 +446,14 @@ dcc_abort (session *sess, struct DCC *dcc)
 			{
 			case TYPE_CHATSEND:
 			case TYPE_CHATRECV:
-				EMITX_SIGNAL (XP_TE_DCCCHATABORT, sess, dcc->nick);
+				EMIT_SIGNAL (XP_TE_DCCCHATABORT, sess, dcc->nick);
 				break;
 			case TYPE_SEND:
-				EMITX_SIGNAL (XP_TE_DCCSENDABORT, sess, dcc->nick,
+				EMIT_SIGNAL (XP_TE_DCCSENDABORT, sess, dcc->nick,
 								 file_part (dcc->file));
 				break;
 			case TYPE_RECV:
-				EMITX_SIGNAL (XP_TE_DCCRECVABORT, sess, dcc->nick,
+				EMIT_SIGNAL (XP_TE_DCCRECVABORT, sess, dcc->nick,
 								 dcc->file);
 			}
 			break;
@@ -626,7 +626,7 @@ dcc_read_chat (GIOChannel *source, GIOCondition condition, struct DCC *dcc)
 					return TRUE;
 			}
 			sprintf (portbuf, "%d", dcc->port);
-			EMITX_SIGNAL (XP_TE_DCCCHATF, dcc->serv->front_session, dcc->nick,
+			EMIT_SIGNAL (XP_TE_DCCCHATF, dcc->serv->front_session, dcc->nick,
 							 net_ip (dcc->addr), portbuf,
 							 errorstring ((len < 0) ? sock_error () : 0));
 			dcc_close (dcc, STAT_FAILED, FALSE);
@@ -717,7 +717,7 @@ dcc_read (GIOChannel *source, GIOCondition condition, struct DCC *dcc)
 				old = dcc->destfile;
 				dcc->destfile = g_strdup (buf);
 
-				EMITX_SIGNAL (XP_TE_DCCRENAME, dcc->serv->front_session,
+				EMIT_SIGNAL (XP_TE_DCCRENAME, dcc->serv->front_session,
 								 old, dcc->destfile);
 				g_free (old);
 			}
@@ -729,7 +729,7 @@ dcc_read (GIOChannel *source, GIOCondition condition, struct DCC *dcc)
 	if (dcc->fp == -1)
 	{
 		/* the last executed function is open(), errno should be valid */
-		EMITX_SIGNAL (XP_TE_DCCFILEERR, dcc->serv->front_session, dcc->destfile,
+		EMIT_SIGNAL (XP_TE_DCCFILEERR, dcc->serv->front_session, dcc->destfile,
 						 errorstring (errno));
 		dcc_close (dcc, STAT_FAILED, FALSE);
 		return TRUE;
@@ -761,7 +761,7 @@ dcc_read (GIOChannel *source, GIOCondition condition, struct DCC *dcc)
 					return TRUE;
 				}
 			}
-			EMITX_SIGNAL (XP_TE_DCCRECVERR, dcc->serv->front_session, dcc->file,
+			EMIT_SIGNAL (XP_TE_DCCRECVERR, dcc->serv->front_session, dcc->file,
 							 dcc->destfile, dcc->nick,
 							 errorstring ((n < 0) ? sock_error () : 0));
 			/* send ack here? but the socket is dead */
@@ -773,7 +773,7 @@ dcc_read (GIOChannel *source, GIOCondition condition, struct DCC *dcc)
 
 		if (write (dcc->fp, buf, n) == -1) /* could be out of hdd space */
 		{
-			EMITX_SIGNAL (XP_TE_DCCRECVERR, dcc->serv->front_session, dcc->file,
+			EMIT_SIGNAL (XP_TE_DCCRECVERR, dcc->serv->front_session, dcc->file,
 							 dcc->destfile, dcc->nick, errorstring (errno));
 			if (need_ack)
 				dcc_send_ack (dcc);
@@ -792,7 +792,7 @@ dcc_read (GIOChannel *source, GIOCondition condition, struct DCC *dcc)
 			dcc_calc_average_cps (dcc);	/* this must be done _after_ dcc_close, or dcc_remove_from_sum will see the wrong value in dcc->cps */
 			/* cppcheck-suppress deallocuse */
 			sprintf (buf, "%d", dcc->cps);
-			EMITX_SIGNAL (XP_TE_DCCRECVCOMP, dcc->serv->front_session,
+			EMIT_SIGNAL (XP_TE_DCCRECVCOMP, dcc->serv->front_session,
 							 dcc->file, dcc->destfile, dcc->nick, buf);
 			return TRUE;
 		}
@@ -819,7 +819,7 @@ dcc_did_connect (GIOChannel *source, GIOCondition condition, struct DCC *dcc)
 		/* find the last errno for this socket */
 		len = sizeof (er);
 		getsockopt (dcc->sok, SOL_SOCKET, SO_ERROR, (char *)&er, &len);
-		EMITX_SIGNAL (XP_TE_DCCCONFAIL, dcc->serv->front_session,
+		EMIT_SIGNAL (XP_TE_DCCCONFAIL, dcc->serv->front_session,
 						 dcctypes[dcc->type], dcc->nick, errorstring (er));
 		dcc->dccstat = STAT_FAILED;
 		fe_dcc_update (dcc);
@@ -840,7 +840,7 @@ dcc_did_connect (GIOChannel *source, GIOCondition condition, struct DCC *dcc)
 		er = sock_error ();
 		if (er != EISCONN)
 		{
-			EMITX_SIGNAL (XP_TE_DCCCONFAIL, dcc->serv->front_session,
+			EMIT_SIGNAL (XP_TE_DCCCONFAIL, dcc->serv->front_session,
 							 dcctypes[dcc->type], dcc->nick, errorstring (er));
 			dcc->dccstat = STAT_FAILED;
 			fe_dcc_update (dcc);
@@ -873,7 +873,7 @@ dcc_connect_finished (GIOChannel *source, GIOCondition condition, struct DCC *dc
 	{
 	case TYPE_RECV:
 		dcc->iotag = fe_input_add (dcc->sok, FIA_READ|FIA_EX, dcc_read, dcc);
-		EMITX_SIGNAL (XP_TE_DCCCONRECV, dcc->serv->front_session,
+		EMIT_SIGNAL (XP_TE_DCCCONRECV, dcc->serv->front_session,
 						 dcc->nick, host, dcc->file);
 		break;
 	case TYPE_SEND:
@@ -883,7 +883,7 @@ dcc_connect_finished (GIOChannel *source, GIOCondition condition, struct DCC *dc
 			dcc->wiotag = fe_input_add (dcc->sok, FIA_WRITE, dcc_send_data, dcc);
 		dcc->iotag = fe_input_add (dcc->sok, FIA_READ|FIA_EX, dcc_read_ack, dcc);
 		dcc_send_data (NULL, 0, (gpointer)dcc);
-		EMITX_SIGNAL (XP_TE_DCCCONSEND, dcc->serv->front_session,
+		EMIT_SIGNAL (XP_TE_DCCCONSEND, dcc->serv->front_session,
 						 dcc->nick, host, dcc->file);
 		break;
 	case TYPE_CHATSEND:	/* pchat */
@@ -892,7 +892,7 @@ dcc_connect_finished (GIOChannel *source, GIOCondition condition, struct DCC *dc
 		dcc->iotag = fe_input_add (dcc->sok, FIA_READ|FIA_EX, dcc_read_chat, dcc);
 		dcc->dccchat = malloc (sizeof (struct dcc_chat));
 		dcc->dccchat->pos = 0;
-		EMITX_SIGNAL (XP_TE_DCCCONCHAT, dcc->serv->front_session,
+		EMIT_SIGNAL (XP_TE_DCCCONCHAT, dcc->serv->front_session,
 						 dcc->nick, host);
 		break;
 	}
@@ -1480,7 +1480,7 @@ dcc_send_data (GIOChannel *source, GIOCondition condition, struct DCC *dcc)
 	{
 abortit:
 		free (buf);
-		EMITX_SIGNAL (XP_TE_DCCSENDFAIL, dcc->serv->front_session,
+		EMIT_SIGNAL (XP_TE_DCCSENDFAIL, dcc->serv->front_session,
 						 file_part (dcc->file), dcc->nick,
 						 errorstring (sock_error ()));
 		dcc_close (dcc, STAT_FAILED, FALSE);
@@ -1536,7 +1536,7 @@ dcc_handle_new_ack (struct DCC *dcc)
 		dcc_calc_average_cps (dcc);	/* this must be done _after_ dcc_close, or dcc_remove_from_sum will see the wrong value in dcc->cps */
 		/* cppcheck-suppress deallocuse */
 		sprintf (buf, "%d", dcc->cps);
-		EMITX_SIGNAL (XP_TE_DCCSENDCOMP, dcc->serv->front_session,
+		EMIT_SIGNAL (XP_TE_DCCSENDCOMP, dcc->serv->front_session,
 						 file_part (dcc->file), dcc->nick, buf);
 		done = TRUE;
 	}
@@ -1571,7 +1571,7 @@ dcc_read_ack (GIOChannel *source, GIOCondition condition, struct DCC *dcc)
 				if (would_block ())	/* ok - keep waiting */
 					return TRUE;
 			}
-			EMITX_SIGNAL (XP_TE_DCCSENDFAIL, dcc->serv->front_session,
+			EMIT_SIGNAL (XP_TE_DCCSENDFAIL, dcc->serv->front_session,
 							 file_part (dcc->file), dcc->nick,
 							 errorstring ((len < 0) ? sock_error () : 0));
 			dcc_close (dcc, STAT_FAILED, FALSE);
@@ -1628,7 +1628,7 @@ dcc_accept (GIOChannel *source, GIOCondition condition, struct DCC *dcc)
 			dcc->wiotag = fe_input_add (sok, FIA_WRITE, dcc_send_data, dcc);
 		dcc->iotag = fe_input_add (sok, FIA_READ|FIA_EX, dcc_read_ack, dcc);
 		dcc_send_data (NULL, 0, (gpointer)dcc);
-		EMITX_SIGNAL (XP_TE_DCCCONSEND, dcc->serv->front_session,
+		EMIT_SIGNAL (XP_TE_DCCCONSEND, dcc->serv->front_session,
 						 dcc->nick, host, dcc->file);
 		break;
 
@@ -1637,7 +1637,7 @@ dcc_accept (GIOChannel *source, GIOCondition condition, struct DCC *dcc)
 		dcc->iotag = fe_input_add (dcc->sok, FIA_READ|FIA_EX, dcc_read_chat, dcc);
 		dcc->dccchat = malloc (sizeof (struct dcc_chat));
 		dcc->dccchat->pos = 0;
-		EMITX_SIGNAL (XP_TE_DCCCONCHAT, dcc->serv->front_session,
+		EMIT_SIGNAL (XP_TE_DCCCONCHAT, dcc->serv->front_session,
 						 dcc->nick, host);
 		break;
 	}
@@ -1875,7 +1875,7 @@ dcc_send (struct session *sess, char *to, char *file, int maxcps, int passive)
 				}
 				sess->server->p_ctcp (sess->server, to, outbuf);
 
-				EMITX_SIGNAL (XP_TE_DCCOFFER, sess, file_part (dcc->file),
+				EMIT_SIGNAL (XP_TE_DCCOFFER, sess, file_part (dcc->file),
 								 to, dcc->file);
 			} else
 			{
@@ -2124,7 +2124,7 @@ dcc_get_nick (struct session *sess, char *nick)
 		list = list->next;
 	}
 	if (sess)
-		EMITX_SIGNAL (XP_TE_DCCIVAL, sess);
+		EMIT_SIGNAL (XP_TE_DCCIVAL, sess, NULL);
 }
 
 static struct DCC *
@@ -2154,7 +2154,7 @@ dcc_chat (struct session *sess, char *nick, int passive)
 		case STAT_ACTIVE:
 		case STAT_QUEUED:
 		case STAT_CONNECTING:
-			EMITX_SIGNAL (XP_TE_DCCCHATREOFFER, sess, nick);
+			EMIT_SIGNAL (XP_TE_DCCCHATREOFFER, sess, nick);
 			return;
 		case STAT_ABORTED:
 		case STAT_FAILED:
@@ -2205,7 +2205,7 @@ dcc_chat (struct session *sess, char *nick, int passive)
 						 dcc->addr, dcc->port);
 		}
 		dcc->serv->p_ctcp (dcc->serv, nick, outbuf);
-		EMITX_SIGNAL (XP_TE_DCCCHATOFFERING, sess, nick);
+		EMIT_SIGNAL (XP_TE_DCCCHATOFFERING, sess, nick);
 	} else
 	{
 		dcc_close (dcc, 0, TRUE);
@@ -2215,7 +2215,7 @@ dcc_chat (struct session *sess, char *nick, int passive)
 static void
 dcc_malformed (struct session *sess, char *nick, char *data)
 {
-	EMITX_SIGNAL (XP_TE_MALFORMED, sess, nick, data);
+	EMIT_SIGNAL (XP_TE_MALFORMED, sess, nick, data);
 }
 
 int
@@ -2287,7 +2287,7 @@ dcc_add_chat (session *sess, char *nick, int port, guint32 addr, int pasvid)
 		dcc->nick = strdup (nick);
 		dcc->starttime = time (0);
 
-		EMITX_SIGNAL (XP_TE_DCCCHATOFFER, sess->server->front_session, nick);
+		EMIT_SIGNAL (XP_TE_DCCCHATOFFER, sess->server->front_session, nick);
 
 		if (prefs.hex_gui_autoopen_chat)
 		{
@@ -2378,7 +2378,7 @@ dcc_add_file (session *sess, char *file, DCC_SIZE size, int port, char *nick, gu
 	}
 	sprintf (tbuf, "%"DCC_SFMT, size);
 	snprintf (tbuf + 24, 300, "%s:%d", net_ip (addr), port);
-	EMITX_SIGNAL (XP_TE_DCCSENDOFFER, sess->server->front_session, nick,
+	EMIT_SIGNAL (XP_TE_DCCSENDOFFER, sess->server->front_session, nick,
 					 file, tbuf, tbuf + 24);
 
 	return dcc;
@@ -2482,7 +2482,7 @@ handle_dcc (struct session *sess, char *nick, char *word[], char *word_eol[],
 				dcc->serv->p_ctcp (dcc->serv, dcc->nick, tbuf);
 			}
 			sprintf (tbuf, "%"DCC_SFMT, dcc->pos);
-			EMITX_SIGNAL_TIMESTAMP (XP_TE_DCCRESUMEREQUEST, sess, tags_data->timestamp, nick,
+			EMIT_SIGNAL_TIMESTAMP (XP_TE_DCCRESUMEREQUEST, sess, tags_data->timestamp, nick,
 										  file_part (dcc->file), tbuf);
 		}
 		return;
@@ -2553,7 +2553,7 @@ handle_dcc (struct session *sess, char *nick, char *word[], char *word_eol[],
 
 	} else
 	{
-		EMITX_SIGNAL_TIMESTAMP (XP_TE_DCCGENERICOFFER, sess->server->front_session,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_DCCGENERICOFFER, sess->server->front_session,
 									  tags_data->timestamp, word_eol[4] + 2, nick);
 	}
 }
@@ -2565,7 +2565,7 @@ dcc_show_list (struct session *sess)
 	struct DCC *dcc;
 	GSList *list = dcc_list;
 
-	EMITX_SIGNAL (XP_TE_DCCHEAD, sess);
+	EMIT_SIGNAL (XP_TE_DCCHEAD, sess, NULL);
 	while (list)
 	{
 		dcc = (struct DCC *) list->data;

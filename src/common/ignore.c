@@ -118,7 +118,7 @@ ignore_showlist (session *sess)
 	char tbuf[256];
 	int i = 0;
 
-	EMITX_SIGNAL (XP_TE_IGNOREHEADER, sess);
+	EMIT_SIGNAL (XP_TE_IGNOREHEADER, sess, NULL);
 
 	while (list)
 	{
@@ -156,15 +156,15 @@ ignore_showlist (session *sess)
 			strcat (tbuf, _("NO   "));
 		strcat (tbuf, "\n");
 		PrintText (sess, tbuf);
-		/*EMITX_SIGNAL (XP_TE_IGNORELIST, sess, ig->mask); */
+		/*EMIT_SIGNAL (XP_TE_IGNORELIST, sess, ig->mask); */
 		/* use this later, when TE's support 7 args */
 		list = list->next;
 	}
 
 	if (!i)
-		EMITX_SIGNAL (XP_TE_IGNOREEMPTY, sess);
+		EMIT_SIGNAL (XP_TE_IGNOREEMPTY, sess, NULL);
 
-	EMITX_SIGNAL (XP_TE_IGNOREFOOTER, sess);
+	EMIT_SIGNAL (XP_TE_IGNOREFOOTER, sess, NULL);
 }
 
 /* ignore_del()
