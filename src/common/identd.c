@@ -79,7 +79,7 @@ identd (char *username)
 	identd_is_running = FALSE;
 
 #if 0	/* causes random crashes, probably due to CreateThread */
-	EMIT_SIGNAL (XP_TE_IDENTD, current_sess, inet_ntoa (addr.sin_addr), username, NULL, NULL, 0);
+	EMIT_SIGNAL (XP_TE_IDENTD, current_sess, inet_ntoa (addr.sin_addr), username, NULL, NULL, NULL);
 #endif
 	inet_ntop (AF_INET, &addr.sin_addr, ipbuf, sizeof (ipbuf));
 	snprintf (outbuf, sizeof (outbuf), "*\tServicing ident request from %s as %s\n", ipbuf, username);

@@ -132,7 +132,7 @@ inbound_open_dialog (server *serv, char *from,
 
 	sess = new_ircwindow (serv, from, SESS_DIALOG, 0);
 	/* for playing sounds */
-	EMIT_SIGNAL_TIMESTAMP (XP_TE_OPENDIALOG, sess, NULL, NULL, NULL, NULL, 0,
+	EMIT_SIGNAL_TIMESTAMP (XP_TE_OPENDIALOG, sess, NULL, NULL, NULL, NULL, NULL,
 								  tags_data->timestamp);
 
 	return sess;
@@ -214,10 +214,10 @@ inbound_privmsg (server *serv, char *from, char *ip, char *text, int id,
 	inbound_make_idtext (serv, idtext, sizeof (idtext), id);
 
 	if (sess->type == SESS_DIALOG && !nodiag)
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_DPRIVMSG, sess, from, text, idtext, NULL, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_DPRIVMSG, sess, from, text, idtext, NULL, NULL,
 									  tags_data->timestamp);
 	else
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_PRIVMSG, sess, from, text, idtext, NULL, 0, 
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_PRIVMSG, sess, from, text, idtext, NULL, NULL, 
 									  tags_data->timestamp);
 }
 
@@ -406,22 +406,22 @@ inbound_action (session *sess, char *chan, char *from, char *ip, char *text,
 		if (is_hilight (from, text, sess, serv))
 		{
 			EMIT_SIGNAL_TIMESTAMP (XP_TE_HCHANACTION, sess, from, text, nickchar,
-										  idtext, 0, tags_data->timestamp);
+										  idtext, NULL, tags_data->timestamp);
 			return;
 		}
 	}
 
 	if (fromme)
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_UACTION, sess, from, text, nickchar, idtext,
-									  0, tags_data->timestamp);
+									  NULL, tags_data->timestamp);
 	else if (!privaction)
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANACTION, sess, from, text, nickchar,
-									  idtext, 0, tags_data->timestamp);
+									  idtext, NULL, tags_data->timestamp);
 	else if (sess->type == SESS_DIALOG)
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_DPRIVACTION, sess, from, text, idtext, NULL,
-									  0, tags_data->timestamp);
+									  NULL, tags_data->timestamp);
 	else
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_PRIVACTION, sess, from, text, idtext, NULL, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_PRIVACTION, sess, from, text, idtext, NULL, NULL,
 									  tags_data->timestamp);
 }
 
@@ -484,7 +484,7 @@ inbound_chanmsg (server *serv, session *sess, char *chan, char *from,
 		if (prefs.hex_away_auto_unmark && serv->is_away && !tags_data->timestamp)
 			sess->server->p_set_back (sess->server);
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_UCHANMSG, sess, from, text, nickchar, NULL,
-									  0, tags_data->timestamp);
+									  NULL, tags_data->timestamp);
 		return;
 	}
 
@@ -494,14 +494,14 @@ inbound_chanmsg (server *serv, session *sess, char *chan, char *from,
 		hilight = TRUE;
 
 	if (sess->type == SESS_DIALOG)
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_DPRIVMSG, sess, from, text, idtext, NULL, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_DPRIVMSG, sess, from, text, idtext, NULL, NULL,
 									  tags_data->timestamp);
 	else //if (*prefixchar == '\0')
 		EMIT_SIGNAL_TIMESTAMP (hilight ? XP_TE_HCHANMSG : XP_TE_CHANMSG, 
-					sess, from, text, nickchar, idtext, 0, tags_data->timestamp);
+					sess, from, text, nickchar, idtext, NULL, tags_data->timestamp);
 	//else
 	//	EMIT_SIGNAL_TIMESTAMP (hilight ? XP_TE_HCHANMSG : XP_TE_CHANMSG, 
-	//				sess, from, text, nickchar, idtext, 0, tags_data->timestamp);
+	//				sess, from, text, nickchar, idtext, NULL, tags_data->timestamp);
 }
 
 void
@@ -529,11 +529,11 @@ inbound_newnick (server *serv, char *nick, char *newnick, int quiet,
 				{
 					if (me)
 						EMIT_SIGNAL_TIMESTAMP (XP_TE_UCHANGENICK, sess, nick, 
-													  newnick, NULL, NULL, 0,
+													  newnick, NULL, NULL, NULL,
 													  tags_data->timestamp);
 					else
 						EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANGENICK, sess, nick,
-													  newnick, NULL, NULL, 0, tags_data->timestamp);
+													  newnick, NULL, NULL, NULL, tags_data->timestamp);
 				}
 			}
 			if (sess->type == SESS_DIALOG && !serv->p_cmp (sess->channel, nick))
@@ -639,7 +639,7 @@ inbound_ujoin (server *serv, char *chan, char *nick, char *ip,
 	/* sends a MODE */
 	serv->p_join_info (sess->server, chan);
 
-	EMIT_SIGNAL_TIMESTAMP (XP_TE_UJOIN, sess, nick, chan, ip, NULL, 0,
+	EMIT_SIGNAL_TIMESTAMP (XP_TE_UJOIN, sess, nick, chan, ip, NULL, NULL,
 								  tags_data->timestamp);
 
 	if (prefs.hex_irc_who_join)
@@ -658,7 +658,7 @@ inbound_ukick (server *serv, char *chan, char *kicker, char *reason,
 	if (sess)
 	{
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_UKICK, sess, serv->nick, chan, kicker, 
-									  reason, 0, tags_data->timestamp);
+									  reason, NULL, tags_data->timestamp);
 		clear_channel (sess);
 		if (prefs.hex_irc_auto_rejoin)
 		{
@@ -677,10 +677,10 @@ inbound_upart (server *serv, char *chan, char *ip, char *reason,
 	{
 		if (*reason)
 			EMIT_SIGNAL_TIMESTAMP (XP_TE_UPARTREASON, sess, serv->nick, ip, chan,
-										  reason, 0, tags_data->timestamp);
+										  reason, NULL, tags_data->timestamp);
 		else
 			EMIT_SIGNAL_TIMESTAMP (XP_TE_UPART, sess, serv->nick, ip, chan, NULL,
-										  0, tags_data->timestamp);
+										  NULL, tags_data->timestamp);
 		clear_channel (sess);
 	}
 }
@@ -699,12 +699,12 @@ inbound_nameslist (server *serv, char *chan, char *names,
 	if (!sess)
 	{
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_USERSONCHAN, serv->server_session, chan,
-									  names, NULL, NULL, 0, tags_data->timestamp);
+									  names, NULL, NULL, NULL, tags_data->timestamp);
 		return;
 	}
 	if (!sess->ignore_names)
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_USERSONCHAN, sess, chan, names, NULL, NULL,
-									  0, tags_data->timestamp);
+									  NULL, tags_data->timestamp);
 
 	if (sess->end_of_names)
 	{
@@ -760,7 +760,7 @@ inbound_topic (server *serv, char *chan, char *topic_text,
 	} else
 		sess = serv->server_session;
 
-	EMIT_SIGNAL_TIMESTAMP (XP_TE_TOPIC, sess, chan, topic_text, NULL, NULL, 0,
+	EMIT_SIGNAL_TIMESTAMP (XP_TE_TOPIC, sess, chan, topic_text, NULL, NULL, NULL,
 								  tags_data->timestamp);
 }
 
@@ -774,7 +774,7 @@ inbound_topicnew (server *serv, char *nick, char *chan, char *topic,
 	sess = find_channel (serv, chan);
 	if (sess)
 	{
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_NEWTOPIC, sess, nick, topic, chan, NULL, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_NEWTOPIC, sess, nick, topic, chan, NULL, NULL,
 									  tags_data->timestamp);
 		stripped_topic = strip_color (topic, -1, STRIP_ALL);
 		set_topic (sess, topic, stripped_topic);
@@ -789,7 +789,7 @@ inbound_join (server *serv, char *chan, char *user, char *ip, char *account,
 	session *sess = find_channel (serv, chan);
 	if (sess)
 	{
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_JOIN, sess, user, chan, ip, account, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_JOIN, sess, user, chan, ip, account, NULL,
 									  tags_data->timestamp);
 		userlist_add (sess, user, ip, account, realname, tags_data);
 	}
@@ -802,7 +802,7 @@ inbound_kick (server *serv, char *chan, char *user, char *kicker, char *reason,
 	session *sess = find_channel (serv, chan);
 	if (sess)
 	{
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_KICK, sess, kicker, user, chan, reason, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_KICK, sess, kicker, user, chan, reason, NULL,
 									  tags_data->timestamp);
 		userlist_remove (sess, user);
 	}
@@ -817,9 +817,9 @@ inbound_part (server *serv, char *chan, char *user, char *ip, char *reason,
 	{
 		if (*reason)
 			EMIT_SIGNAL_TIMESTAMP (XP_TE_PARTREASON, sess, user, ip, chan, reason,
-										  0, tags_data->timestamp);
+										  NULL, tags_data->timestamp);
 		else
-			EMIT_SIGNAL_TIMESTAMP (XP_TE_PART, sess, user, ip, chan, NULL, 0,
+			EMIT_SIGNAL_TIMESTAMP (XP_TE_PART, sess, user, ip, chan, NULL, NULL,
 										  tags_data->timestamp);
 		userlist_remove (sess, user);
 	}
@@ -836,7 +836,7 @@ inbound_topictime (server *serv, char *chan, char *nick, time_t stamp,
 		sess = serv->server_session;
 
 	tim[24] = 0;	/* get rid of the \n */
-	EMIT_SIGNAL_TIMESTAMP (XP_TE_TOPICDATE, sess, chan, nick, tim, NULL, 0,
+	EMIT_SIGNAL_TIMESTAMP (XP_TE_TOPICDATE, sess, chan, nick, tim, NULL, NULL,
 								  tags_data->timestamp);
 }
 
@@ -858,12 +858,12 @@ inbound_quit (server *serv, char *nick, char *ip, char *reason,
  				was_on_front_session = TRUE;
 			if ((user = userlist_find (sess, nick)))
 			{
-				EMIT_SIGNAL_TIMESTAMP (XP_TE_QUIT, sess, nick, reason, ip, NULL, 0,
+				EMIT_SIGNAL_TIMESTAMP (XP_TE_QUIT, sess, nick, reason, ip, NULL, NULL,
 											  tags_data->timestamp);
 				userlist_remove_user (sess, user);
 			} else if (sess->type == SESS_DIALOG && !serv->p_cmp (sess->channel, nick))
 			{
-				EMIT_SIGNAL_TIMESTAMP (XP_TE_QUIT, sess, nick, reason, ip, NULL, 0,
+				EMIT_SIGNAL_TIMESTAMP (XP_TE_QUIT, sess, nick, reason, ip, NULL, NULL,
 											  tags_data->timestamp);
 			}
 		}
@@ -923,12 +923,12 @@ inbound_ping_reply (session *sess, char *timestring, char *from,
 		if (sess->server->lag_sent)
 			sess->server->lag_sent = 0;
 		else
-			EMIT_SIGNAL_TIMESTAMP (XP_TE_PINGREP, sess, from, "?", NULL, NULL, 0,
+			EMIT_SIGNAL_TIMESTAMP (XP_TE_PINGREP, sess, from, "?", NULL, NULL, NULL,
 										  tags_data->timestamp);
 	} else
 	{
 		snprintf (outbuf, sizeof (outbuf), "%ld.%03ld", dif / 1000, dif % 1000);
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_PINGREP, sess, from, outbuf, NULL, NULL, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_PINGREP, sess, from, outbuf, NULL, NULL, NULL,
 									  tags_data->timestamp);
 	}
 }
@@ -1039,13 +1039,13 @@ inbound_notice (server *serv, char *to, char *nick, char *msg, char *ip, int id,
 		po[0] = 0;
 
 	if (server_notice)
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_SERVNOTICE, sess, msg, nick, NULL, NULL, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_SERVNOTICE, sess, msg, nick, NULL, NULL, NULL,
 									  tags_data->timestamp);
 	else if (ptr)
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANNOTICE, sess, nick, to, msg, NULL, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANNOTICE, sess, nick, to, msg, NULL, NULL,
 									  tags_data->timestamp);
 	else
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_NOTICE, sess, nick, msg, NULL, NULL, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_NOTICE, sess, nick, msg, NULL, NULL, NULL,
 									  tags_data->timestamp);
 }
 
@@ -1078,7 +1078,7 @@ inbound_away (server *serv, char *nick, char *msg,
 
 	/* possibly hide the output */
 	if (!serv->inside_whois || !serv->skip_next_whois)
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_WHOIS5, sess, nick, msg, NULL, NULL, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_WHOIS5, sess, nick, msg, NULL, NULL, NULL,
 									  tags_data->timestamp);
 
 	list = sess_list;
@@ -1109,10 +1109,10 @@ inbound_away_notify (server *serv, char *nick, char *reason,
 			{
 				if (reason)
 					EMIT_SIGNAL_TIMESTAMP (XP_TE_NOTIFYAWAY, sess, nick, reason, NULL,
-												  NULL, 0, tags_data->timestamp);
+												  NULL, NULL, tags_data->timestamp);
 				else
 					EMIT_SIGNAL_TIMESTAMP (XP_TE_NOTIFYBACK, sess, nick, NULL, NULL, 
-												  NULL, 0, tags_data->timestamp);
+												  NULL, NULL, tags_data->timestamp);
 			}
 		}
 		list = list->next;
@@ -1253,12 +1253,12 @@ inbound_next_nick (session *sess, char *nick, int error,
 		if (error)
 		{
 			EMIT_SIGNAL_TIMESTAMP (XP_TE_NICKERROR, sess, nick, newnick, NULL, NULL,
-										  0, tags_data->timestamp);
+										  NULL, tags_data->timestamp);
 		}
 		else
 		{
 			EMIT_SIGNAL_TIMESTAMP (XP_TE_NICKCLASH, sess, nick, newnick, NULL, NULL,
-										  0, tags_data->timestamp);
+										  NULL, tags_data->timestamp);
 		}
 		break;
 
@@ -1267,17 +1267,17 @@ inbound_next_nick (session *sess, char *nick, int error,
 		if (error)
 		{
 			EMIT_SIGNAL_TIMESTAMP (XP_TE_NICKERROR, sess, nick, prefs.hex_irc_nick3,
-										  NULL, NULL, 0, tags_data->timestamp);
+										  NULL, NULL, NULL, tags_data->timestamp);
 		}
 		else
 		{
 			EMIT_SIGNAL_TIMESTAMP (XP_TE_NICKCLASH, sess, nick, prefs.hex_irc_nick3,
-										  NULL, NULL, 0, tags_data->timestamp);
+										  NULL, NULL, NULL, tags_data->timestamp);
 		}
 		break;
 
 	default:
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_NICKFAIL, sess, NULL, NULL, NULL, NULL, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_NICKFAIL, sess, NULL, NULL, NULL, NULL, NULL,
 									  tags_data->timestamp);
 	}
 }
@@ -1340,7 +1340,7 @@ do_dns (session *sess, char *nick, char *host,
 		host = po + 1;
 
 	if (nick)
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_RESOLVINGUSER, sess, nick, host, NULL, NULL, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_RESOLVINGUSER, sess, nick, host, NULL, NULL, NULL,
 								tags_data->timestamp);
 
 	PrintTextf (sess, _("Looking up %s..."), host);
@@ -1438,7 +1438,7 @@ inbound_foundip (session *sess, char *ip, const message_tags_data *tags_data)
 		prefs.dcc_ip = ((struct in_addr *) HostAddr->h_addr)->s_addr;
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_FOUNDIP, sess->server->server_session,
 									  inet_ntoa (*((struct in_addr *) HostAddr->h_addr)),
-									  NULL, NULL, NULL, 0, tags_data->timestamp);
+									  NULL, NULL, NULL, NULL, tags_data->timestamp);
 	}
 }
 
@@ -1527,7 +1527,7 @@ inbound_banlist (session *sess, time_t stamp, char *chan, char *mask,
 nowindow:
 
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_BANLIST, sess, chan, mask, banner, time_str,
-									  0, tags_data->timestamp);
+									  NULL, tags_data->timestamp);
 		return TRUE;
 	}
 
@@ -1627,12 +1627,12 @@ inbound_login_end (session *sess, char *text, const message_tags_data *tags_data
 	{
 		serv->motd_skipped = TRUE;
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_MOTDSKIP, serv->server_session, NULL, NULL,
-									  NULL, NULL, 0, tags_data->timestamp);
+									  NULL, NULL, NULL, tags_data->timestamp);
 		return;
 	}
 
 	EMIT_SIGNAL_TIMESTAMP (XP_TE_MOTD, serv->server_session, text, NULL, NULL,
-								  NULL, 0, tags_data->timestamp);
+								  NULL, NULL, tags_data->timestamp);
 }
 
 void
@@ -1652,7 +1652,7 @@ inbound_cap_ack (server *serv, char *nick, char *extensions,
 					  const message_tags_data *tags_data)
 {
 	EMIT_SIGNAL_TIMESTAMP (XP_TE_CAPACK, serv->server_session, nick, extensions,
-								  NULL, NULL, 0, tags_data->timestamp);
+								  NULL, NULL, NULL, tags_data->timestamp);
 
 	if (strstr (extensions, "identify-msg") != NULL)
 	{
@@ -1724,7 +1724,7 @@ inbound_cap_ls (server *serv, char *nick, char *extensions_str,
 	int i;
 
 	EMIT_SIGNAL_TIMESTAMP (XP_TE_CAPLIST, serv->server_session, nick,
-								  extensions_str, NULL, NULL, 0, tags_data->timestamp);
+								  extensions_str, NULL, NULL, NULL, tags_data->timestamp);
 	want_cap = 0;
 	want_sasl = 0;
 
@@ -1804,7 +1804,7 @@ inbound_cap_ls (server *serv, char *nick, char *extensions_str,
 	{
 		/* buffer + 9 = emit buffer without "CAP REQ :" */
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_CAPREQ, serv->server_session,
-									  buffer + 9, NULL, NULL, NULL, 0,
+									  buffer + 9, NULL, NULL, NULL, NULL,
 									  tags_data->timestamp);
 		tcp_sendf (serv, "%s\r\n", g_strchomp (buffer));
 	}
@@ -1828,7 +1828,7 @@ inbound_cap_list (server *serv, char *nick, char *extensions,
 						const message_tags_data *tags_data)
 {
 	EMIT_SIGNAL_TIMESTAMP (XP_TE_CAPACK, serv->server_session, nick, extensions,
-								  NULL, NULL, 0, tags_data->timestamp);
+								  NULL, NULL, NULL, tags_data->timestamp);
 }
 
 static const char *sasl_mechanisms[] =
@@ -1915,8 +1915,8 @@ inbound_sasl_authenticate (server *serv, char *data)
 		g_free (pass);
 
 		
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_SASLAUTH, serv->server_session, user, (char*)mech,
-								NULL,	NULL,	0,	0);
+		EMIT_SIGNAL (XP_TE_SASLAUTH, serv->server_session, user, (char*)mech,
+								NULL,	NULL,	NULL);
 }
 
 int

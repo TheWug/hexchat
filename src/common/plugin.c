@@ -1721,9 +1721,9 @@ int
 hexchat_emit_print (hexchat_plugin *ph, const char *event_name, ...)
 {
 	va_list args;
-	/* currently only 4 because no events use more than 4.
+	/* currently only 5 because no events use more than 5.
 		This can be easily expanded without breaking the API. */
-	char *argv[4] = {NULL, NULL, NULL, NULL};
+	char *argv[5] = {NULL, NULL, NULL, NULL, NULL};
 	int i = 0;
 
 	va_start (args, event_name);
@@ -1733,12 +1733,12 @@ hexchat_emit_print (hexchat_plugin *ph, const char *event_name, ...)
 		if (!argv[i])
 			break;
 		i++;
-		if (i >= 4)
+		if (i >= 5)
 			break;
 	}
 
 	i = text_emit_by_name ((char *)event_name, ph->context, (time_t) 0,
-						   argv[0], argv[1], argv[2], argv[3]);
+						   argv[0], argv[1], argv[2], argv[3], argv[4]);
 	va_end (args);
 
 	return i;
@@ -1749,9 +1749,9 @@ hexchat_emit_print_attrs (hexchat_plugin *ph, hexchat_event_attrs *attrs,
 						  const char *event_name, ...)
 {
 	va_list args;
-	/* currently only 4 because no events use more than 4.
+	/* currently only 5 because no events use more than 5.
 		This can be easily expanded without breaking the API. */
-	char *argv[4] = {NULL, NULL, NULL, NULL};
+	char *argv[5] = {NULL, NULL, NULL, NULL, NULL};
 	int i = 0;
 
 	va_start (args, event_name);
@@ -1761,12 +1761,12 @@ hexchat_emit_print_attrs (hexchat_plugin *ph, hexchat_event_attrs *attrs,
 		if (!argv[i])
 			break;
 		i++;
-		if (i >= 4)
+		if (i >= 5)
 			break;
 	}
 
 	i = text_emit_by_name ((char *)event_name, ph->context, attrs->server_time_utc,
-						   argv[0], argv[1], argv[2], argv[3]);
+						   argv[0], argv[1], argv[2], argv[3], argv[4]);
 	va_end (args);
 
 	return i;

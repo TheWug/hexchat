@@ -445,7 +445,7 @@ handle_single_mode (mode_run *mr, char sign, char mode, char *nick,
 			fe_update_mode_buttons (sess, mode, sign);
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANSETKEY, sess, nick, arg, NULL,
-											  NULL, 0, tags_data->timestamp);
+											  NULL, NULL, tags_data->timestamp);
 			return;
 		case 'l':
 			sess->limit = atoi (arg);
@@ -453,7 +453,7 @@ handle_single_mode (mode_run *mr, char sign, char mode, char *nick,
 			fe_update_mode_buttons (sess, mode, sign);
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANSETLIMIT, sess, nick, arg, NULL,
-											  NULL, 0, tags_data->timestamp);
+											  NULL, NULL, tags_data->timestamp);
 			return;
 		case 'o':
 			if (!quiet)
@@ -462,7 +462,7 @@ handle_single_mode (mode_run *mr, char sign, char mode, char *nick,
 		case 'h':
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANHOP, sess, nick, arg, NULL, NULL,
-											  0, tags_data->timestamp);
+											  NULL, tags_data->timestamp);
 			return;
 		case 'v':
 			if (!quiet)
@@ -471,23 +471,23 @@ handle_single_mode (mode_run *mr, char sign, char mode, char *nick,
 		case 'b':
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANBAN, sess, nick, arg, NULL, NULL,
-											  0, tags_data->timestamp);
+											  NULL, tags_data->timestamp);
 			return;
 		case 'e':
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANEXEMPT, sess, nick, arg, NULL,
-											  NULL, 0, tags_data->timestamp);
+											  NULL, NULL, tags_data->timestamp);
 			return;
 		case 'I':
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANINVITE, sess, nick, arg, NULL, NULL,
-											  0, tags_data->timestamp);
+											  NULL, tags_data->timestamp);
 			return;
 		case 'q':
 			if (!supportsq)
 				break; /* +q is owner on this server */
 			if (!quiet)
-				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANQUIET, sess, nick, arg, NULL, NULL, 0,
+				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANQUIET, sess, nick, arg, NULL, NULL, NULL,
 								 tags_data->timestamp);
 			return;
 		}
@@ -501,7 +501,7 @@ handle_single_mode (mode_run *mr, char sign, char mode, char *nick,
 			fe_update_mode_buttons (sess, mode, sign);
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANRMKEY, sess, nick, NULL, NULL,
-											  NULL, 0, tags_data->timestamp);
+											  NULL, NULL, tags_data->timestamp);
 			return;
 		case 'l':
 			sess->limit = 0;
@@ -509,7 +509,7 @@ handle_single_mode (mode_run *mr, char sign, char mode, char *nick,
 			fe_update_mode_buttons (sess, mode, sign);
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANRMLIMIT, sess, nick, NULL, NULL,
-											  NULL, 0, tags_data->timestamp);
+											  NULL, NULL, tags_data->timestamp);
 			return;
 		case 'o':
 			if (!quiet)
@@ -518,7 +518,7 @@ handle_single_mode (mode_run *mr, char sign, char mode, char *nick,
 		case 'h':
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANDEHOP, sess, nick, arg, NULL,
-											  NULL, 0, tags_data->timestamp);
+											  NULL, NULL, tags_data->timestamp);
 			return;
 		case 'v':
 			if (!quiet)
@@ -527,24 +527,24 @@ handle_single_mode (mode_run *mr, char sign, char mode, char *nick,
 		case 'b':
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANUNBAN, sess, nick, arg, NULL, NULL,
-											  0, tags_data->timestamp);
+											  NULL, tags_data->timestamp);
 			return;
 		case 'e':
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANRMEXEMPT, sess, nick, arg, NULL,
-											  NULL, 0, tags_data->timestamp);
+											  NULL, NULL, tags_data->timestamp);
 			return;
 		case 'I':
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANRMINVITE, sess, nick, arg, NULL,
-											  NULL, 0, tags_data->timestamp);
+											  NULL, NULL, tags_data->timestamp);
 			return;
 		case 'q':
 			if (!supportsq)
 				break; /* -q is owner on this server */
 			if (!quiet)
 				EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANUNQUIET, sess, nick, arg, NULL,
-											  NULL, 0, tags_data->timestamp);
+											  NULL, NULL, tags_data->timestamp);
 			return;
 		}
 	}
@@ -563,11 +563,11 @@ handle_single_mode (mode_run *mr, char sign, char mode, char *nick,
 			char *buf = malloc (strlen (chan) + strlen (arg) + 2);
 			sprintf (buf, "%s %s", chan, arg);
 			EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANMODEGEN, sess, nick, outbuf,
-										  outbuf + 2, buf, 0, tags_data->timestamp);
+										  outbuf + 2, buf, NULL, tags_data->timestamp);
 			free (buf);
 		} else
 			EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANMODEGEN, sess, nick, outbuf,
-										  outbuf + 2, chan, 0, tags_data->timestamp);
+										  outbuf + 2, chan, NULL, tags_data->timestamp);
 	}
 }
 
@@ -633,7 +633,7 @@ mode_print_grouped (session *sess, char *nick, mode_run *mr,
 	/* print all the grouped Op/Deops */
 	if (mr->op)
 	{
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANOP, sess, nick, mr->op, NULL, NULL, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANOP, sess, nick, mr->op, NULL, NULL, NULL,
 									  tags_data->timestamp);
 		free (mr->op);
 		mr->op = NULL;
@@ -642,7 +642,7 @@ mode_print_grouped (session *sess, char *nick, mode_run *mr,
 	if (mr->deop)
 	{
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANDEOP, sess, nick, mr->deop, NULL, NULL,
-									  0, tags_data->timestamp);
+									  NULL, tags_data->timestamp);
 		free (mr->deop);
 		mr->deop = NULL;
 	}
@@ -650,7 +650,7 @@ mode_print_grouped (session *sess, char *nick, mode_run *mr,
 	if (mr->voice)
 	{
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANVOICE, sess, nick, mr->voice, NULL, NULL,
-									  0, tags_data->timestamp);
+									  NULL, tags_data->timestamp);
 		free (mr->voice);
 		mr->voice = NULL;
 	}
@@ -658,7 +658,7 @@ mode_print_grouped (session *sess, char *nick, mode_run *mr,
 	if (mr->devoice)
 	{
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANDEVOICE, sess, nick, mr->devoice, NULL,
-									  NULL, 0, tags_data->timestamp);
+									  NULL, NULL, tags_data->timestamp);
 		free (mr->devoice);
 		mr->devoice = NULL;
 	}
@@ -712,7 +712,7 @@ handle_mode (server * serv, char *word[], char *word_eol[],
 		word_eol[offset][len] = 0;
 
 	if (prefs.hex_irc_raw_modes && !numeric_324)
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_RAWMODES, sess, nick, word_eol[offset], 0, 0, 0,
+		EMIT_SIGNAL_TIMESTAMP (XP_TE_RAWMODES, sess, nick, word_eol[offset], NULL, NULL, NULL,
 									  tags_data->timestamp);
 
 	if (numeric_324 && !using_front_tab)

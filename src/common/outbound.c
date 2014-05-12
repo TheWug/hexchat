@@ -703,7 +703,7 @@ cmd_ctcp (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 
 			sess->server->p_ctcp (sess->server, to, msg);
 
-			EMIT_SIGNAL (XP_TE_CTCPSEND, sess, to, msg, NULL, NULL, 0);
+			EMIT_SIGNAL (XP_TE_CTCPSEND, sess, to, msg, NULL, NULL, NULL);
 
 			return TRUE;
 		}
@@ -803,7 +803,7 @@ cmd_dcc (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 					return FALSE;
 
 				if (!dcc)
-					EMIT_SIGNAL (XP_TE_NODCC, sess, NULL, NULL, NULL, NULL, 0);
+					EMIT_SIGNAL (XP_TE_NODCC, sess, NULL, NULL, NULL, NULL, NULL);
 
 				return TRUE;
 
@@ -837,7 +837,7 @@ cmd_dcc (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 				if (dcc)
 					dcc_get (dcc);
 				else
-					EMIT_SIGNAL (XP_TE_NODCC, sess, NULL, NULL, NULL, NULL, 0);
+					EMIT_SIGNAL (XP_TE_NODCC, sess, NULL, NULL, NULL, NULL, NULL);
 			}
 			return TRUE;
 		}
@@ -1475,7 +1475,7 @@ cmd_execs (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 	exec_check_process (sess);
 	if (sess->running_exec == NULL)
 	{
-		EMIT_SIGNAL (XP_TE_NOCHILD, sess, NULL, NULL, NULL, NULL, 0);
+		EMIT_SIGNAL (XP_TE_NOCHILD, sess, NULL, NULL, NULL, NULL, NULL);
 		return FALSE;
 	}
 	r = kill (sess->running_exec->childpid, SIGSTOP);
@@ -1493,7 +1493,7 @@ cmd_execc (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 	exec_check_process (sess);
 	if (sess->running_exec == NULL)
 	{
-		EMIT_SIGNAL (XP_TE_NOCHILD, sess, NULL, NULL, NULL, NULL, 0);
+		EMIT_SIGNAL (XP_TE_NOCHILD, sess, NULL, NULL, NULL, NULL, NULL);
 		return FALSE;
 	}
 	r = kill (sess->running_exec->childpid, SIGCONT);
@@ -1511,7 +1511,7 @@ cmd_execk (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 	exec_check_process (sess);
 	if (sess->running_exec == NULL)
 	{
-		EMIT_SIGNAL (XP_TE_NOCHILD, sess, NULL, NULL, NULL, NULL, 0);
+		EMIT_SIGNAL (XP_TE_NOCHILD, sess, NULL, NULL, NULL, NULL, NULL);
 		return FALSE;
 	}
 	if (strcmp (word[2], "-9") == 0)
@@ -1534,7 +1534,7 @@ cmd_execw (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 	exec_check_process (sess);
 	if (sess->running_exec == NULL)
 	{
-		EMIT_SIGNAL (XP_TE_NOCHILD, sess, NULL, NULL, NULL, NULL, 0);
+		EMIT_SIGNAL (XP_TE_NOCHILD, sess, NULL, NULL, NULL, NULL, NULL);
 		return FALSE;
 	}
 	len = strlen(word_eol[2]);
@@ -1767,7 +1767,7 @@ cmd_exec (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 		exec_check_process (sess);
 		if (sess->running_exec != NULL)
 		{
-			EMIT_SIGNAL (XP_TE_ALREADYPROCESS, sess, NULL, NULL, NULL, NULL, 0);
+			EMIT_SIGNAL (XP_TE_ALREADYPROCESS, sess, NULL, NULL, NULL, NULL, NULL);
 			return TRUE;
 		}
 
@@ -2307,10 +2307,10 @@ cmd_ignore (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 			switch (i)
 			{
 			case 1:
-				EMIT_SIGNAL (XP_TE_IGNOREADD, sess, mask, NULL, NULL, NULL, 0);
+				EMIT_SIGNAL (XP_TE_IGNOREADD, sess, mask, NULL, NULL, NULL, NULL);
 				break;
 			case 2:	/* old ignore changed */
-				EMIT_SIGNAL (XP_TE_IGNORECHANGE, sess, mask, NULL, NULL, NULL, 0);
+				EMIT_SIGNAL (XP_TE_IGNORECHANGE, sess, mask, NULL, NULL, NULL, NULL);
 			}
 			return TRUE;
 		}
@@ -2777,7 +2777,7 @@ cmd_msg (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 				nick++;
 				if (!dcc_write_chat (nick, msg))
 				{
-					EMIT_SIGNAL (XP_TE_NODCC, sess, NULL, NULL, NULL, NULL, 0);
+					EMIT_SIGNAL (XP_TE_NODCC, sess, NULL, NULL, NULL, NULL, NULL);
 					return TRUE;
 				}
 			} else
@@ -2828,7 +2828,7 @@ cmd_msg (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 				if (g_ascii_strcasecmp (nick, "nickserv") == 0 &&
 					 g_ascii_strncasecmp (msg, "identify ", 9) == 0)
 					msg = "identify ****";
-				EMIT_SIGNAL (XP_TE_MSGSEND, sess, nick, msg, NULL, NULL, 0);
+				EMIT_SIGNAL (XP_TE_MSGSEND, sess, nick, msg, NULL, NULL, NULL);
 			}
 
 			return TRUE;
@@ -2905,7 +2905,7 @@ cmd_notice (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 		while ((split_text = split_up_text (sess, text + offset, cmd_length, split_text)))
 		{
 			sess->server->p_notice (sess->server, word[2], split_text);
-			EMIT_SIGNAL (XP_TE_NOTICESEND, sess, word[2], split_text, NULL, NULL, 0);
+			EMIT_SIGNAL (XP_TE_NOTICESEND, sess, word[2], split_text, NULL, NULL, NULL);
 			
 			if (*split_text)
 				offset += strlen(split_text);
@@ -2914,7 +2914,7 @@ cmd_notice (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 		}
 
 		sess->server->p_notice (sess->server, word[2], text + offset);
-		EMIT_SIGNAL (XP_TE_NOTICESEND, sess, word[2], text + offset, NULL, NULL, 0);
+		EMIT_SIGNAL (XP_TE_NOTICESEND, sess, word[2], text + offset, NULL, NULL, NULL);
 
 		return TRUE;
 	}
@@ -2942,7 +2942,7 @@ cmd_notify (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 				break;
 			if (notify_deluser (word[i]))
 			{
-				EMIT_SIGNAL (XP_TE_DELNOTIFY, sess, word[i], NULL, NULL, NULL, 0);
+				EMIT_SIGNAL (XP_TE_DELNOTIFY, sess, word[i], NULL, NULL, NULL, NULL);
 				return TRUE;
 			}
 
@@ -2951,7 +2951,7 @@ cmd_notify (struct session *sess, char *tbuf, char *word[], char *word_eol[])
 			else
 			{
 				notify_adduser (word[i], net);
-				EMIT_SIGNAL (XP_TE_ADDNOTIFY, sess, word[i], NULL, NULL, NULL, 0);
+				EMIT_SIGNAL (XP_TE_ADDNOTIFY, sess, word[i], NULL, NULL, NULL, NULL);
 			}
 		}
 	} else
@@ -3554,7 +3554,7 @@ cmd_unignore (struct session *sess, char *tbuf, char *word[],
 		if (ignore_del (mask, NULL))
 		{
 			if (g_ascii_strcasecmp (arg, "QUIET"))
-				EMIT_SIGNAL (XP_TE_IGNOREREMOVE, sess, mask, NULL, NULL, NULL, 0);
+				EMIT_SIGNAL (XP_TE_IGNOREREMOVE, sess, mask, NULL, NULL, NULL, NULL);
 		}
 		return TRUE;
 	}
