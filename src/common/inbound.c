@@ -496,12 +496,12 @@ inbound_chanmsg (server *serv, session *sess, char *chan, char *from,
 	if (sess->type == SESS_DIALOG)
 		EMIT_SIGNAL_TIMESTAMP (XP_TE_DPRIVMSG, sess, from, text, idtext, NULL, NULL,
 									  tags_data->timestamp);
-	else //if (*prefixchar == '\0')
+	else if (*prefixchar == '\0')
 		EMIT_SIGNAL_TIMESTAMP (hilight ? XP_TE_HCHANMSG : XP_TE_CHANMSG, 
 					sess, from, text, nickchar, idtext, NULL, tags_data->timestamp);
-	//else
-	//	EMIT_SIGNAL_TIMESTAMP (hilight ? XP_TE_HCHANMSG : XP_TE_CHANMSG, 
-	//				sess, from, text, nickchar, idtext, NULL, tags_data->timestamp);
+	else
+		EMIT_SIGNAL_TIMESTAMP (hilight ? XP_TE_HPCHANMSG : XP_TE_PCHANMSG, 
+					sess, from, text, nickchar, idtext, prefixchar, tags_data->timestamp);
 }
 
 void
