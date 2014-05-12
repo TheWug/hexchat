@@ -1860,7 +1860,7 @@ format_event (session *sess, int index, char **args, char *o, int sizeofo, unsig
 			ar = args[(int) a + 1];
 			if (ar == NULL)
 			{
-				printf ("arg[%d] is NULL in print event\n", a + 1);
+				printf ("arg[%d] is NULL in print event %s (%d)\n", a + 1, te[index].name, index);
 			} else
 			{
 				if (strlen (ar) > sizeofo - oi - 4)
