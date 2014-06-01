@@ -62,13 +62,11 @@
     </Link>
     <PreBuildEvent>
       <Command>
-      <![CDATA[
 SET SOLUTIONDIR=$(SolutionDir)..\
 powershell -File "$(SolutionDir)..\version-template.ps1" "$(SolutionDir)..\win32\installer\hexchat.iss.tt" "$(SolutionDir)..\win32\installer\hexchat.iss"
 del "$(OutDir)hexchat.iss"
-type hexchat.iss >> "$(OutDir)hexchat.iss"
+echo F | xcopy /y hexchat.iss "$(OutDir)hexchat.iss"
 $(IsccPath) /dPROJECTDIR="$(ProjectDir)" /dAPPARCH="$(Platform)" "$(OutDir)hexchat.iss"
-      ]]>
       </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
