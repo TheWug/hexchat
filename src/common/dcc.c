@@ -585,7 +585,7 @@ dcc_chat_line (struct DCC *dcc, char *line)
 		po = strchr (line + 8, '\001');
 		if (po)
 			po[0] = 0;
-		inbound_action (sess, dcc->serv->nick, dcc->nick, "", line + 8, FALSE,
+		inbound_action (sess, sess->server, dcc->serv->nick, dcc->nick, "", line + 8, FALSE,
 							 FALSE, &no_tags);
 	} else
 	{

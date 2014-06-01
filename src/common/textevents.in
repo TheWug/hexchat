@@ -838,6 +838,12 @@ pevt_whois6_help
 %C23*%O$t%C28[%C18$1%C28] %OEnd of WHOIS list.
 1
 
+WhoIs Generic
+XP_TE_WHOIS_EXTRA
+pevt_whois_extra_help
+%C23*%O$t%C28[%C18$1%C28] %O$2
+2
+
 WhoIs Identified
 XP_TE_WHOIS_ID
 pevt_whoisid_help
@@ -908,7 +914,13 @@ Your Action
 XP_TE_UACTION
 pevt_chanaction_help
 %C20*$t%B$1%B %C30$2%O
-n3
+n4
+
+Your Action Prefix
+XP_TE_UPACTION
+pevt_pchanaction_help
+[$5] %C20*$t%B$1%B %C30$2%O
+n5
 
 Your Invitation
 XP_TE_UINVITE
@@ -921,6 +933,12 @@ XP_TE_UCHANMSG
 pevt_chanmsg_help
 %C20%H<%H$4$1%H>%H%O%C30$t$2%O
 n4
+
+Your Message Prefix
+XP_TE_UPCHANMSG
+pevt_pchanmsg_help
+[$5] %C20%H<%H$4$1%H>%H%O%C30$t$2%O
+n5
 
 Your Nick Changing
 XP_TE_UCHANGENICK

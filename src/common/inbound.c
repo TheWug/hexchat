@@ -191,7 +191,7 @@ inbound_privmsg (server *serv, char *from, char *ip, char *text, int id,
 			}
 			set_topic (sess, ip, ip);
 		}
-		inbound_chanmsg (serv, NULL, NULL, from, text, FALSE, id, tags_data);
+		inbound_chanmsg (NULL, serv, NULL, from, ip, text, FALSE, id, tags_data);
 		return;
 	}
 
@@ -327,59 +327,75 @@ is_hilight (char *from, char *text, session *sess, server *serv)
 	return 0;
 }
 
-void
-inbound_action (session *sess, char *chan, char *from, char *ip, char *text,
-					 int fromme, int id, const message_tags_data *tags_data)
-{
-	session *def = sess;
-	server *serv = sess->server;
-	struct User *user;
-	char nickchar[2] = "\000";
-	char prefixchar[2] = "\000";
-	char idtext[64];
-	int privaction = FALSE;
+// there are a lot of text events that can be generated here, so here's an
+// explanation of what's going on.
+// There are 3 different categories:
+//   Mine, Others
+//   Hilight, Nohilight
+//   Channel, Prefix, Private, Direct
+// all incoming messages fit into one description from each category.
+// the only incompatibility is that messages that are mine cannot also be hilights.
+// There is one text event for each legal combination, so there are 12 possible
+// text events.
 
-	if (!fromme)
+// There us no code path which produces direct mine actions, so there are no code paths here
+// to handle them.  That leaves only 10 possible text events.
+
+static void inbound_privmsg_helper(char *nickchar, char *prefixchar, char *idtext,
+				   int *is_highlight, msg_destination *action_type,
+				   session **initial_session, server *serv, char **chan,
+				   char *from, char *ip, char *text, int *from_me, int *id,
+				   const message_tags_data *tags_data)
+{
+	struct User *user;
+	session *sess = *initial_session;
+
+	*is_highlight = is_hilight (from, text, sess, serv);
+
+	if (*from_me && sess == NULL)
 	{
-		if (is_channel (serv, chan))
+		*action_type = MSGDEST_DIRECT;
+		sess = serv->front_session;
+	}
+	else if (*chan && is_channel (serv, *chan))
+	{
+		*action_type = MSGDEST_CHANNEL;
+		sess = find_channel (serv, *chan);
+	}
+	else if (*chan && strchr(serv->nick_prefixes, **chan) && is_channel (serv, *chan + 1))
+	{
+		*action_type = MSGDEST_PREFIX;
+		prefixchar[0] = **chan;
+		++*chan;
+		sess = find_channel (serv, *chan);
+	}
+	else
+	{
+		char *target = *from_me ? *chan : from;
+		session *userquery = find_dialog (serv, target);
+		if (!userquery)
 		{
-			sess = find_channel (serv, chan);
-		} else if (strchr(serv->nick_prefixes, chan[0]))
-		{
-			prefixchar[0] = chan[0];
-			chan++;
-			sess = find_channel (serv, chan);
-		} else
-		{
-			/* it's a private action! */
-			privaction = TRUE;
-			/* find a dialog tab for it */
-			sess = find_dialog (serv, from);
-			/* if non found, open a new one */
-			if (!sess && prefs.hex_gui_autoopen_dialog)
+			if (prefs.hex_gui_autoopen_dialog && flood_check (target, ip, serv, current_sess, 1))
 			{
-				/* but only if it wouldn't flood */
-				if (flood_check (from, ip, serv, current_sess, 1))
-					sess = inbound_open_dialog (serv, from, tags_data);
-				else
-					sess = serv->server_session;
+				*action_type = MSGDEST_PRIVATE;
+				sess = inbound_open_dialog (serv, target, tags_data);
 			}
-			if (!sess)
+			else
 			{
-				sess = find_session_from_nick (from, serv);
-				/* still not good? */
-				if (!sess)
-					sess = serv->front_session;
+				*action_type = MSGDEST_DIRECT;
+				sess = serv->front_session;
 			}
+		}
+		else
+		{
+			*action_type = MSGDEST_PRIVATE;
+			sess = userquery;
 		}
 	}
 
-	if (!sess)
-		sess = def;
-
 	if (sess != current_tab)
 	{
-		if (fromme)
+		if (*from_me)
 		{
 			sess->msg_said = FALSE;
 			sess->new_data = TRUE;
@@ -397,116 +413,65 @@ inbound_action (session *sess, char *chan, char *from, char *ip, char *text,
 		nickchar[0] = user->prefix[0];
 		user->lasttalk = time (0);
 		if (user->account)
-			id = TRUE;
+			*id = TRUE;
 		if (user->me)
-			fromme = TRUE;
+			*from_me = TRUE;
 	}
 
-	inbound_make_idtext (serv, idtext, sizeof (idtext), id);
+	inbound_make_idtext (serv, idtext, sizeof (idtext), *id);
 
-	if (!fromme && !privaction && is_hilight (from, text, sess, serv))
-	{
-		if (*prefixchar == '\0')
-			EMIT_SIGNAL_TIMESTAMP (XP_TE_HCHANACTION, sess, tags_data->timestamp, from, text, nickchar, idtext);
-		else
-			EMIT_SIGNAL_TIMESTAMP (XP_TE_HPCHANACTION, sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
-	}
-	else if (fromme)
-	{
-		// not possible yet, a new command will be needed for it (/me+ or something)
-//		if (*prefixchar == '\0')
-			EMIT_SIGNAL_TIMESTAMP (XP_TE_UACTION, sess, tags_data->timestamp, from, text, nickchar, idtext);
-//		else
-//			EMIT_SIGNAL_TIMESTAMP (XP_TE_UPACTION, sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
-	}
-	else if (!privaction)
-	{
-		if (*prefixchar == '\0')
-			EMIT_SIGNAL_TIMESTAMP (XP_TE_CHANACTION, sess, tags_data->timestamp, from, text, nickchar, idtext);
-		else
-			EMIT_SIGNAL_TIMESTAMP (XP_TE_PCHANACTION, sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
-	}
-	else if (sess->type == SESS_DIALOG)
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_DPRIVACTION, sess, tags_data->timestamp, from, text, idtext);
-	else
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_PRIVACTION, sess, tags_data->timestamp, from, text, idtext);
+	*initial_session = sess;
 }
 
 void
-inbound_chanmsg (server *serv, session *sess, char *chan, char *from, 
-					  char *text, char fromme, int id, 
+inbound_action (session *sess, server *serv, char *chan, char *from, char *ip, char *text,
+					 int from_me, int id, const message_tags_data *tags_data)
+{
+	char nickchar[2] = "\000";
+	char prefixchar[2] = "\000";
+	char idtext[64];
+
+	int is_highlight = is_hilight (from, text, sess, serv);
+	msg_destination action_type = MSGDEST_UNKNOWN;
+
+	inbound_privmsg_helper(nickchar, prefixchar, idtext, &is_highlight, &action_type,
+				   &sess, serv, &chan, from, ip, text, &from_me, &id, tags_data);
+
+	if (from_me && prefs.hex_away_auto_unmark && serv->is_away && !tags_data->timestamp)
+			sess->server->p_set_back (sess->server);
+
+	if (from_me) EMIT_SIGNAL_TIMESTAMP(PICK_TEVENT(action_type, XP_TE_UACTION, XP_TE_UPACTION, XP_TE_UACTION, XP_TE_UPACTION),
+					   sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
+	else if (is_highlight) EMIT_SIGNAL_TIMESTAMP(PICK_TEVENT(action_type, XP_TE_HCHANACTION, XP_TE_HPCHANACTION, XP_TE_DPRIVACTION, XP_TE_PRIVACTION),
+					   sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
+	else EMIT_SIGNAL_TIMESTAMP(PICK_TEVENT(action_type, XP_TE_CHANACTION, XP_TE_PCHANACTION, XP_TE_DPRIVACTION, XP_TE_PRIVACTION),
+					   sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
+}
+
+void
+inbound_chanmsg (session *sess, server *serv, char *chan, char *from, char *ip,
+					  char *text, int from_me, int id, 
 					  const message_tags_data *tags_data)
 {
-	struct User *user;
-	int hilight = FALSE;
 	char prefixchar[2] = "\000";
 	char nickchar[2] = "\000";
 	char idtext[64];
 
-	if (!sess)
-	{
-		if (chan)
-		{
-			if (is_channel(serv, chan))
-				sess = find_channel (serv, chan);
+	int is_highlight = is_hilight (from, text, sess, serv);
+	msg_destination action_type = MSGDEST_UNKNOWN;
 
-			// /privmsg [mode-prefix]#channel should end up in that channel
-			else if (strchr(serv->nick_prefixes, chan[0]))
-			{
-				prefixchar[0] = chan[0];
-				chan++;
-				sess = find_channel (serv, chan);
-			}
+	inbound_privmsg_helper(nickchar, prefixchar, idtext, &is_highlight, &action_type,
+				   &sess, serv, &chan, from, ip, text, &from_me, &id, tags_data);
 
-			else
-				sess = find_dialog (serv, chan);
-		} else
-		{
-			sess = find_dialog (serv, from);
-		}
-		if (!sess)
-			return;
-	}
-
-	if (sess != current_tab)
-	{
-		sess->msg_said = TRUE;
-		sess->new_data = FALSE;
-		lastact_update (sess);
-	}
-
-	user = userlist_find (sess, from);
-	if (user)
-	{
-		if (user->account)
-			id = TRUE;
-		nickchar[0] = user->prefix[0];
-		user->lasttalk = time (0);
-		if (user->me)
-			fromme = TRUE;
-	}
-
-	if (fromme)
-	{
-		if (prefs.hex_away_auto_unmark && serv->is_away && !tags_data->timestamp)
+	if (from_me && prefs.hex_away_auto_unmark && serv->is_away && !tags_data->timestamp)
 			sess->server->p_set_back (sess->server);
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_UCHANMSG, sess, tags_data->timestamp, from, text, nickchar, ""); // identified text not available
-		return;
-	}
 
-	inbound_make_idtext (serv, idtext, sizeof (idtext), id);
-
-	if (is_hilight (from, text, sess, serv))
-		hilight = TRUE;
-
-	if (sess->type == SESS_DIALOG)
-		EMIT_SIGNAL_TIMESTAMP (XP_TE_DPRIVMSG, sess, tags_data->timestamp, from, text, idtext);
-	else if (*prefixchar == '\0')
-		EMIT_SIGNAL_TIMESTAMP (hilight ? XP_TE_HCHANMSG : XP_TE_CHANMSG, 
-					sess, tags_data->timestamp, from, text, nickchar, idtext);
-	else
-		EMIT_SIGNAL_TIMESTAMP (hilight ? XP_TE_HPCHANMSG : XP_TE_PCHANMSG, 
-					sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
+	if (from_me) EMIT_SIGNAL_TIMESTAMP(PICK_TEVENT(action_type, XP_TE_UCHANMSG, XP_TE_UPCHANMSG, XP_TE_DPRIVMSG, XP_TE_MSGSEND),
+					   sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
+	else if (is_highlight) EMIT_SIGNAL_TIMESTAMP(PICK_TEVENT(action_type, XP_TE_HCHANMSG, XP_TE_HPCHANMSG, XP_TE_DPRIVMSG, XP_TE_PRIVMSG),
+					   sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
+	else EMIT_SIGNAL_TIMESTAMP(PICK_TEVENT(action_type, XP_TE_CHANMSG, XP_TE_PCHANMSG, XP_TE_DPRIVMSG, XP_TE_PRIVMSG),
+					   sess, tags_data->timestamp, from, text, nickchar, idtext, prefixchar);
 }
 
 void

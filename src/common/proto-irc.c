@@ -1212,7 +1212,7 @@ process_named_msg (session *sess, char *type, char *word[], char *word_eol[],
 						{
 							if (ignore_check (word[1], IG_CHAN))
 								return;
-							inbound_chanmsg (serv, NULL, to, nick, text, FALSE, id,
+							inbound_chanmsg (NULL, serv, to, nick, ip, text, FALSE, id,
 												  tags_data);
 						} else
 						{

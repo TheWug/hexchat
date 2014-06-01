@@ -1333,6 +1333,11 @@ static char * const pevt_whoisrealhost_help[] = {
 	N_("Message"),
 };
 
+static char * const pevt_whois_extra_help[] = {
+	N_("Nickname"),
+	N_("Scriptable field"),
+};
+
 static char * const pevt_generic_channel_help[] = {
 	N_("Channel Name"),
 };
@@ -2118,7 +2123,7 @@ text_emit (int index, session *sess, time_t timestamp, char *word[])
 	unsigned int stripcolor_args = (chanopt_is_set (prefs.hex_text_stripcolor_msg, sess->text_strip) ? 0xFFFFFFFF : 0);
 	char tbuf[NICKLEN + 4];
 
-	if (prefs.hex_text_color_nicks && (index == XP_TE_CHANACTION || index == XP_TE_CHANMSG || index == XP_TE_PCHANMSG))
+	if (prefs.hex_text_color_nicks && (index == XP_TE_CHANACTION || index == XP_TE_PCHANACTION || index == XP_TE_CHANMSG || index == XP_TE_PCHANMSG))
 	{
 		snprintf (tbuf, sizeof (tbuf), "\003%d%s", text_color_of (word[1]), word[1]);
 		word[1] = tbuf;
@@ -2161,6 +2166,7 @@ text_emit (int index, session *sess, time_t timestamp, char *word[])
 
 	/* ===Highlighted message=== */
 	case XP_TE_HCHANACTION:
+	case XP_TE_HPCHANACTION:
 	case XP_TE_HCHANMSG:
 	case XP_TE_HPCHANMSG:
 		if (chanopt_is_set (prefs.hex_input_beep_hilight, sess->alert_beep) && (!prefs.hex_away_omit_alerts || !sess->server->is_away))
@@ -2173,6 +2179,7 @@ text_emit (int index, session *sess, time_t timestamp, char *word[])
 
 	/* ===Channel message=== */
 	case XP_TE_CHANACTION:
+	case XP_TE_PCHANACTION:
 	case XP_TE_CHANMSG:
 	case XP_TE_PCHANMSG:
 		if (chanopt_is_set (prefs.hex_input_beep_chans, sess->alert_beep) && (!prefs.hex_away_omit_alerts || !sess->server->is_away))

@@ -75,14 +75,14 @@ void inbound_login_start (session *sess, char *nick, char *servname,
 								  const message_tags_data *tags_data);
 void inbound_login_end (session *sess, char *text,
 								const message_tags_data *tags_data);
-void inbound_chanmsg (server *serv, session *sess, char *chan, char *from,
-							 char *text, char fromme, int id, 
+void inbound_chanmsg (session *sess, server *serv, char *chan, char *from, char *ip,
+							 char *text, int fromme, int id, 
 							 const message_tags_data *tags_data);
 void clear_channel (session *sess);
 void set_topic (session *sess, char *topic, char *stripped_topic);
 void inbound_privmsg (server *serv, char *from, char *ip, char *text, int id, 
 							 const message_tags_data *tags_data);
-void inbound_action (session *sess, char *chan, char *from, char *ip,
+void inbound_action (session *sess, server *serv, char *chan, char *from, char *ip,
 							char *text, int fromme, int id,
 							const message_tags_data *tags_data);
 void inbound_newnick (server *serv, char *nick, char *newnick, int quiet,
@@ -102,5 +102,9 @@ void do_dns (session *sess, char *nick, char *host,
 				 const message_tags_data *tags_data);
 gboolean alert_match_word (char *word, char *masks);
 gboolean alert_match_text (char *text, char *masks);
+
+typedef enum {MSGDEST_CHANNEL = 0, MSGDEST_PREFIX = 1, MSGDEST_PRIVATE = 2, MSGDEST_DIRECT = 3, MSGDEST_UNKNOWN} msg_destination;
+
+#define PICK_TEVENT(ACTION, TE1, TE2, TE3, TE4) (((int[4]) {TE1, TE2, TE3, TE4})[(int) ACTION])
 
 #endif
