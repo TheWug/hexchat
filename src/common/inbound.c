@@ -350,8 +350,6 @@ static void inbound_privmsg_helper(char *nickchar, char *prefixchar, char *idtex
 	struct User *user;
 	session *sess = *initial_session;
 
-	*is_highlight = is_hilight (from, text, sess, serv);
-
 	if (*from_me && sess == NULL)
 	{
 		*action_type = MSGDEST_DIRECT;
@@ -393,6 +391,8 @@ static void inbound_privmsg_helper(char *nickchar, char *prefixchar, char *idtex
 		}
 	}
 
+	*is_highlight = is_hilight (from, text, sess, serv);
+
 	if (sess != current_tab)
 	{
 		if (*from_me)
@@ -431,7 +431,7 @@ inbound_action (session *sess, server *serv, char *chan, char *from, char *ip, c
 	char prefixchar[2] = "\000";
 	char idtext[64];
 
-	int is_highlight = is_hilight (from, text, sess, serv);
+	int is_highlight;
 	msg_destination action_type = MSGDEST_UNKNOWN;
 
 	inbound_privmsg_helper(nickchar, prefixchar, idtext, &is_highlight, &action_type,
@@ -457,7 +457,7 @@ inbound_chanmsg (session *sess, server *serv, char *chan, char *from, char *ip,
 	char nickchar[2] = "\000";
 	char idtext[64];
 
-	int is_highlight = is_hilight (from, text, sess, serv);
+	int is_highlight;
 	msg_destination action_type = MSGDEST_UNKNOWN;
 
 	inbound_privmsg_helper(nickchar, prefixchar, idtext, &is_highlight, &action_type,
